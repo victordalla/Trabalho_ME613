@@ -1,34 +1,5 @@
 ---
 title: "Lista 2 - Questão 5-7"
-author: "Victor D P Cunha"
-date: "14 April 2019"
-output:
-  pdf_document: 
-    fig_caption: yes
-    fig_crop: no
-  html_document:
-    df_print: paged
-geometry: margin=2cm
-header-includes:
-  - \usepackage[brazil, english, portuguese]{babel}
-  - \usepackage[utf8]{inputenc}
-  - \usepackage[T1]{fontenc}
-  - \usepackage[fixlanguage]{babelbib}
-  - \usepackage{times}
-
-  - \usepackage{graphicx}
-  - \usepackage{wrapfig}
-  - \usepackage{pdfpages}
-  
-  - \usepackage{amsfonts}
-  - \usepackage{amssymb}
-  - \usepackage{amsmath}
-  
-  - \usepackage{fancyhdr}
-  - \usepackage{subcaption}
-  - \usepackage{booktabs}
-  - \usepackage{caption}
-  - \usepackage{float}
 ---
 
 ```{r setup, include=FALSE}
@@ -53,7 +24,6 @@ library(magrittr)
 library(broom)
 library(dplyr)
 ```
-
 
 # 5
 

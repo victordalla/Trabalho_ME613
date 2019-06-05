@@ -4,7 +4,7 @@ title: "Lista 1 - Questão 15"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, 
+  echo = FALSE, 
   message = FALSE,
   warning = FALSE,
   tidy.opts = list(width.cutoff = 60),
@@ -152,7 +152,13 @@ df <- read.table(
 df <- rename(df, etiologia = V1, carga = V2, VO2 = V3)
 ```
 
-# 15-d) Análise descritiva
+# Questão 3
+
+## Introdução
+
+Bçah
+
+## Análise descritiva
 
 Na figura abaixo estão os boxplots do consumo de oxigênio (VO2) para cada etiologia. Ela indica que o VO2 da etiologia "C" é em média maior que o VO2 das demais etiologias. 
 
@@ -165,46 +171,53 @@ ggplot(df, aes(etiologia, VO2)) +
   theme_classic()
 ```
 
-# 15-a) Modelo desconsiderando etiologia
+## Análise inferencial
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \alpha + \beta (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde $\alpha$ é o VO2 esperado quando a carga assume seu valor médio e $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+### Modelo desconsiderando etiologia
 
-# 15-b) Modelo considerando etiologia sem interação
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde 
 
-Seja $i = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente e $d_i = 1$ quando a etiologia assume o valor associado ao0 índice $i$ e $d_i = 0$ caso contrário.
+- $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente
+- $\beta_{0}$ é o VO2 esperado quando a carga assume seu valor médio
+- $\beta_{1}$ é a variação esperada em VO2 quando a carga varia em uma unidade
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \alpha + \gamma_2 d_2 + \gamma_3 d_3 + \gamma_4 d_4 + \beta (x_{i j} - \bar{x})+ \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde $\alpha$ é o VO2 esperado quando a etiologia é "C" (casela de referência) e a carga assume seu valor médio, $\gamma_i$ é o VO2 esperado quando a etiologia assume valor associado ao índice $i$ e a carga assume seu valor médio e $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+### Modelo considerando etiologia com interação
 
-# 15-c) Hipóteses de interesse
+Seja $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
+<!-- $d_j = 1$ quando a etiologia assume o valor associado ao índice $j$ e $d_j = 0$ caso contrário. -->
 
-Para o item a), uma hipótese de interesse é $H_0: \beta = 0$ \textit{versus} $H_1: \beta \neq 0$. Em termos do problema, isso significa testar se a carga tem efeito no VO2 de um indivíduo.
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde
 
-Para o item b), uma hipótese de interesse é $H_0: \gamma_2 = \gamma_3 = \gamma_4 = 0$ \textit{versus} $H_1: \text{para algum algum} \ i \ \text{tal que} \ \gamma_i \neq 0$. Em termos do problema, isso significa testar se os efeitos das etiologias no VO2 são iguais.
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1 j}$ é a variação esperada de VO2 quando a carga varia em uma unidade e a etiologia assume o valor associado ao índice $j$
 
-# 15-e) Modelo do item a)
+Para o item a), uma hipótese de interesse é $H_0: \beta_{1} = 0$ \textit{versus} $H_1: \beta_{1} \neq 0$. Em termos do problema, isso significa testar se a carga tem efeito no VO2 de um indivíduo.
 
-A tabela abaixo apresenta os resultados do ajuste do modelo do item a): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
+Para o item b), uma hipótese de interesse é $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$. Em termos do problema, isso significa testar se os efeitos de VO2 são iguais para todas as etiologias.
+
+### Resultados
+
+A tabela abaixo apresenta os resultados do ajuste do modelo do item b): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
 ```{r}
-modelo_simples <- df %$%
-  lm(VO2 ~ I(carga - mean(carga)))
+modelo_etiologia <- df %$%
+  lm(VO2 ~ etiologia * I(carga - mean(carga)))
 
-tidy(modelo_simples, conf.int = TRUE) %>% 
+tidy(modelo_etiologia, conf.int = TRUE) %>% 
   select(-statistic) %>% 
   knitr::kable()
 ```
 
-A figura seguinte apresenta o gráfio do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta).
+Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $0,1$ com exceção de $\beta_{1 2}$, cujo p-valor, $0,06$, foi marginal.
 
-```{r}
-plot_prediction(modelo_simples, df$VO2, "VO2")
-plot_residuals(modelo_simples)
-```
+Isso indica que é razoável desconsiderar um modelo aditivo, i.e., sem interações: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde
 
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade 
 
-# 16 Modelo do item b)
-
-A tabela abaixo apresenta os resultados do ajuste do modelo do item b): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
+A tabela abaixo apresenta os resultados desse modelo.
 
 ```{r}
 modelo_etiologia <- df %$%

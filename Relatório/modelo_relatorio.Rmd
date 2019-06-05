@@ -1,0 +1,26 @@
+---
+title: "Modelo de Relatório do fudido"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Obs: Caio gosta de legendas em Figuras e Tabelas: embaixo para figuras e em cima para tabelas.
+
+# Introdução
+
+Apresentar o conjunto de dados: o que são, como foram obtidos e onde obter. Explicar qual é o objetivo do estudo. Mencionar a técnica (modelo) a ser usado e uma referência para ele.
+
+# Análise descritiva
+
+# Análise Inferencial
+
+Especificar o modelo e explicar seus termos.
+
+# Conclusão
+
+Resumir se os modelos se ajustaram bem aos dados, dizer qual foi o melhor/menos pior, o que esse modelo indicou de explicação/conclusão
+
+# Referências
