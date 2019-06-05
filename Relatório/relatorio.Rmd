@@ -3,10 +3,12 @@ output:
   pdf_document:
     fig_crop: no
 bibliography: bibliography.bib
-papersize: a4paper
-fontsize: 10pt
+fontsize: 11pt
 documentclass: article
-geometry: margin=2cm
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
 header-includes:
   - \usepackage[brazil, english, portuguese]{babel}
   - \usepackage[utf8]{inputenc}
