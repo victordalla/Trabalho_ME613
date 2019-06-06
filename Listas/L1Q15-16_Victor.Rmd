@@ -175,7 +175,7 @@ ggplot(df, aes(etiologia, VO2)) +
 
 ### Modelo desconsiderando etiologia
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde 
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde 
 
 - $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente
 - $\beta_{0}$ é o VO2 esperado quando a carga assume seu valor médio
@@ -186,7 +186,7 @@ O modelo que explica a variação do consumo de oxigênio (VO2) da carga de comp
 Seja $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
 <!-- $d_j = 1$ quando a etiologia assume o valor associado ao índice $j$ e $d_j = 0$ caso contrário. -->
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
 
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
@@ -211,7 +211,7 @@ tidy(modelo_etiologia, conf.int = TRUE) %>%
 
 Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $0,1$ com exceção de $\beta_{1 2}$, cujo p-valor, $0,06$, foi marginal.
 
-Isso indica que é razoável desconsiderar um modelo aditivo, i.e., sem interações: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon \sim N(0, \sigma^2)$, onde
+Isso indica que é razoável desconsiderar um modelo aditivo, i.e., sem interações: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
 
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
