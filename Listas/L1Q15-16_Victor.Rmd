@@ -28,135 +28,16 @@ source("plot_functions.R")
 
 ```{r import, echo=FALSE}
 df <- read.table(
+  "../Dados/Braga1998PCR.txt", 
   header = FALSE, 
-  text = "
-      CH        64.0       13.40
-    CH        71.0       12.70
-    ID        27.0       8.80
-    ID        82.0       12.20
-    IS        38.0       10.70
-    CH        47.0       12.90
-    ID         3.0       7.30
-    IS        41.0       10.20
-    ID        48.0       9.70
-    CH        97.0       15.30
-    ID        55.0       10.50
-    CH        49.0       13.20
-    CH        95.0       17.10
-    CH        23.0       9.70
-    IS        80.0       10.80
-    CH        66.0       11.30
-    CH        64.0       15.80
-    CH        85.0       22.80
-    IS        45.0       10.70
-    ID        75.0       14.30
-    ID        95.0       12.90
-    ID        48.0       10.60
-    CH        55.0       12.80
-    CH        41.0       10.50
-    CH        86.0       14.30
-    CH        66.0       9.50
-    ID        64.0       11.50
-    ID        125.0      18.40
-    ID        82.0       15.60
-    ID        13.0       9.60
-    ID        97.0       15.80
-    IS        68.0       26.00
-    ID        47.0       8.60
-    CH        75.0       12.20
-    ID        105.0      18.20
-    CH        127.0      23.60
-    ID        97.0       13.00
-    IS        65.0       6.90
-    ID        64.0       12.10
-    CH        157.0      29.80
-    CH        71.0       15.10
-    ID        60.0       12.80
-    CH        97.0       20.70
-    IS        52.0       9.30
-    IS        85.0       11.30
-    IS        85.0       15.80
-    IS        14.0       8.60
-    IS        85.0       14.60
-    ID        95.0       13.40
-    CH        60.0       10.99
-    ID        73.0       13.81
-    ID        30.0       9.81
-    CH        55.0       10.40
-    ID        67.0       10.30
-    ID        60.0       8.24
-    CH        70.0       16.61
-    ID        90.0       15.35
-    ID        47.0       14.50
-    ID        37.5       12.96
-    IS        115.0      14.90
-    IS        40.5       9.50
-    CH        82.0       15.10
-    IS        47.0       11.40
-    IS        75.0       17.20
-    IS        47.0       11.30
-    IS        75.0       12.80
-    IS        105.0      16.00
-    IS        95.0       17.30
-    IS        54.0       11.20
-    IS        43.0       12.70
-    IS        71.0       14.00
-    ID        78.0       13.10
-    ID        56.0       10.90
-    IS        25.0       10.00
-    CH        125.0      18.70
-    CH        42.0       11.10
-    ID        103.0      14.80
-    IS        85.0       14.10
-     C        84.0       14.00
-     C        96.0       11.60
-     C        85.0       14.50
-     C        105.0      22.60
-     C        88.0       14.40
-     C        88.0       19.40
-     C        118.0      21.10
-     C        86.0       21.50
-     C        92.0       21.70
-     C        82.0       13.20
-     C        65.0       13.60
-     C        71.0       12.66
-     C        94.0       16.30
-     C        114.0      18.50
-     C        86.0       14.90
-     C        162.0      20.80
-     C        169.0      26.30
-     C        150.0      20.10
-     C        188.0      24.70
-     C        73.0       18.50
-     C        74.0       15.60
-     C        114.0      15.20
-     C        129.0      18.70
-     C        187.0      26.30
-     C        112.0      15.00
-     C        75.0       13.90
-     C        115.0      18.30
-     C        150.0      22.60
-     C        64.0       12.80
-     C        94.0       16.00
-     C        71.0       12.50
-     C        60.0       11.80
-     C        67.0       12.70
-     C        56.0       11.90
-     C        131.0      25.20
-     C        171.0      24.50
-     C        35.0       11.50
-     C        75.0       15.50
-     C        124.0      25.30
-     C        110.0      21.50
-  ")
-df <- rename(df, etiologia = V1, carga = V2, VO2 = V3)
+  col.names = c("etiologia", "carga", "VO2"))
 ```
 
 # Questão 3
 
 ## Introdução
 
-Bçah
+Os dados são isso e aquilo. O objetivo é sei lá, que será estudado através do modelo X.
 
 ## Análise descritiva
 
@@ -173,32 +54,26 @@ ggplot(df, aes(etiologia, VO2)) +
 
 ## Análise inferencial
 
-### Modelo desconsiderando etiologia
-
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde 
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 1, onde 
 
 - $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente
 - $\beta_{0}$ é o VO2 esperado quando a carga assume seu valor médio
 - $\beta_{1}$ é a variação esperada em VO2 quando a carga varia em uma unidade
 
-### Modelo considerando etiologia com interação
-
-Seja $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
+Agora seja $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
 <!-- $d_j = 1$ quando a etiologia assume o valor associado ao índice $j$ e $d_j = 0$ caso contrário. -->
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 2, onde
 
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
 - $\beta_{1 j}$ é a variação esperada de VO2 quando a carga varia em uma unidade e a etiologia assume o valor associado ao índice $j$
 
-Para o item a), uma hipótese de interesse é $H_0: \beta_{1} = 0$ \textit{versus} $H_1: \beta_{1} \neq 0$. Em termos do problema, isso significa testar se a carga tem efeito no VO2 de um indivíduo.
-
-Para o item b), uma hipótese de interesse é $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$. Em termos do problema, isso significa testar se os efeitos de VO2 são iguais para todas as etiologias.
+Para o Modelo 1, uma hipótese de interesse é $H_0: \beta_{1} = 0$ \textit{versus} $H_1: \beta_{1} \neq 0$. Em termos do problema, isso significa testar se a carga tem efeito no VO2 de um indivíduo. Para o Modelo 2, uma hipótese de interesse é $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$. Em termos do problema, isso significa testar se os efeitos de VO2 são iguais para todas as etiologias.
 
 ### Resultados
 
-A tabela abaixo apresenta os resultados do ajuste do modelo do item b): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
+A Tabela X apresenta os resultados do ajuste do modelo do item b): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -217,7 +92,7 @@ Isso indica que é razoável desconsiderar um modelo aditivo, i.e., sem interaç
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
 - $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade 
 
-A tabela abaixo apresenta os resultados desse modelo.
+A Tabela X apresenta os resultados desse modelo.
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -228,9 +103,9 @@ tidy(modelo_etiologia, conf.int = TRUE) %>%
   knitr::kable()
 ```
 
-A figura seguinte apresenta o gráfio do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta).
+A Figura X apresenta o gráfio do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta).
 
-A próxima figura apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
+A Figura X apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
 
 ```{r}
 plot_prediction(modelo_etiologia, df$VO2, "VO2")  

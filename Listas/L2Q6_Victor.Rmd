@@ -23,175 +23,62 @@ library(ggrepel)
 library(magrittr)
 library(broom)
 library(dplyr)
+source("plot_functions.R")
 ```
-
-# 5
-
-## a)
-
-```{r 5-import, echo=FALSE}
-df <- read.table(
-  header = FALSE, 
-  col.names = c("Estado", "Escolaridade", "Renda"), 
-  text = "
-  RR 5.7  685
-AP 6.0  683 
-AC 4.5  526
-RO 4.9  662 
-PA 4.7  536 
-AM 5.5  627 
-TO 4.5  520 
-PB 3.9  423 
-MA 3.6  343 
-RN 4.5  513 
-SE 4.3  462 
-PI 3.5  383 
-BA 4.1  460 
-PE 4.6  517 
-AL 3.7  454 
-CE 4.0  448 
-SP 6.8 1076 
-RJ 7.1  970 
-ES 5.7  722 
-MG 5.4  681 
-SC 6.3  814 
-RS 6.4  800 
-PR 6.0  782 
-MT 5.4  775 
-GO 5.5  689 
-MS 5.7  731 
-DF 8.2 1499
-  ")
-```
-
-```{r 5-explore}
-ggplot(df, aes(Escolaridade, Renda)) + 
-  geom_point(shape = 21, col = "azure4", fill = "azure3") + 
-  geom_label_repel(aes(label = Estado))
-```
-
-## b)
-
-\[
-Y = X\beta + \epsilon
-\]
-
-Onde $Y$ é a renda, $\beta = (\beta_0, \beta_1)$ é a renda média com nenhuma escolaridade e o incremento na renda a cada ano a mais estudado, respectivamente, e $X = [1 X_1]$, onde $X_1$ é  a escolaridade.
-
-```{r 5-modelo}
-fit <- lm(Renda ~ Escolaridade, data = df)
-tidy(fit, conf.int = TRUE) %>% 
-  select(-statistic) %>% 
-  knitr::kable()
-```
-
-Como os p-valores são muito pequenos, concluimos que $\beta_0$ e $\beta_1$ são diferentes de zero, ou seja, são relevantes para o modelo. No entanto, $beta_0$ é negativo, o que não faz sentido. Por isso, considere o mesmo modelo, agora com $X_1$ sendo a escolaridade centrada no zero. Assim, agora $\beta_0$ é a renda média para a escolaridade média.
-
-```{r 5-modelo_reduzido}
-df %<>% mutate(Esc_cent = Escolaridade - mean(Escolaridade)) 
-fit <- lm(Renda ~ Esc_cent, data = df)
-tidy(fit, conf.int = TRUE) %>% 
-  select(-statistic) %>% 
-  knitr::kable()
-```
-
-Como podemos observar pela tabela, $beta_0$ e $\beta_1$ são relevante para o modelo, visto que os testes de hipóteses que testam suas nulidades têm p-valores próximos de zero. Além disso, $\beta_1$ é positivo, o que significa que há uma relação linear positiva entre a escolaridade e a renda média.
-
-## c)
-
-```{r 5-plot}
-df <- predict.lm(fit, interval = "prediction") %>% 
-  as_tibble() %>% 
-  cbind(df)
-
-ggplot(df, aes(Escolaridade, Renda)) + 
-  geom_point(col = "cadetblue") + 
-  geom_line(aes(y = fit), col = "chocolate") + 
-  geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "coral", alpha = 0.3) + 
-  geom_text_repel(aes(label = Estado), col = "dimgray") + 
-  theme_bw()
-
-boxplot(residuals.lm(fit))
-residuals.lm(fit) %>% mutate(df, Residuo = .) %>% 
-  ggplot(aes(Renda, Residuo)) + 
-  geom_hline(yintercept = 0, linetype = "dashed", col = "cadetblue") + 
-  geom_point(col = "chocolate") + 
-  theme_bw()
-```
-
-O poder de predição é alto, visto que quase todos os pontos ficaram dentro do intervalo de confiança para os preditos. Através da análise do boxplot dos resíduos, é razoável dizer que eles vieram de uma distribuição normal (no entanto, nada se pode dizer sobre a homocedisticidade). Com base nisso e com a aparente relação linear que o gráfico de dispersão sugere entre a escolaridade e a renda, o modelo de regressão linear simples parece o adquado, considerando os conhecidos até o momento.
-
-# 6
-
-## a)
 
 ```{r 6-import, echo=FALSE}
 df <- read.table(
+  "../Dados/imoveis.txt", 
   header = FALSE, 
-  col.names = c("Imposto", "Area_Ter", "Area_Cons", "Idade", "Preco"), 
-  text = "
-   4.9176   3.4720   0.9980    42    25.9
- 5.0208   3.5310   1.5000    62    29.5
- 4.5429   2.2750   1.1750    40    27.9
- 4.5573   4.0500   1.2320    54    25.9
- 5.0597   4.4550   1.1210    42    29.9
- 3.8910   4.4550   0.9880    56    29.9
- 5.8980   5.8500   1.2400    51    30.9
- 5.6039   9.5200   1.5010    32    28.9
-15.4202   9.8000   3.4200    42    84.9
-14.4598  12.8000   3.0000    14    82.9
- 5.8282   6.4350   1.2250    32    35.9
- 5.3003   4.9883   1.5520    30    31.5
- 6.2712   5.5200   0.9750    30    31.0
- 5.9592   6.6660   1.1210    32    30.9
- 5.0500   5.0000   1.0200    46    30.0
- 8.2464   5.1500   1.6640    50    36.9
- 6.6969   6.9020   1.4880    22    41.9
- 7.7841   7.1020   1.3760    17    40.5
- 9.0384   7.8000   1.5000    23    43.9
- 5.9894   5.5200   1.2560    40    37.5
- 7.5422   4.0000   1.6900    22    37.9
- 8.7951   9.8900   1.8200    50    44.5
- 6.0931   6.7265   1.6520    44    37.9
- 8.3607   9.1500   1.7770    48    38.9
- 8.1400   8.0000   1.5040     3    36.9
- 9.1416   7.3262   1.8310    31    45.8
-12.0000   5.0000   1.2000    30    41.0
-  ")
+  col.names = c("Imposto", "Area_Ter", "Area_Cons", "Idade", "Preco"))
 ```
+
+# Questão 6
+
+## Introdução
+
+Os dados são isso e aquilo. O objetivo é sei lá, que será estudado através do modelo X.
+
+## Análise descritiva
 
 ```{r 6-explore}
 GGally::ggcorr(df)
 ```
 
-Observando o gráfico de correlação acima, concluimos que
+A Figura X apresenda um gráfico de matriz de correlação - cada célula (quadrado) deve ser lido como a correlção entre a covariável de sua linha e coluna codificada pelas cores apresentadas na legenda. Ele sugere que
 
 i) As variáveis Imposto, Area_Ter e Area_Cons têm forte correlação (linear) com o preço (Preco), o que indica que são boas candidatas a serem usadas num modelo de regressão linear. No entanto, a variável Idade parece não estar correlacionada com o preço.
 
 ii) Existe uma forte correlação (linear) entre as variáveis (explicatórias) Imposto, Area_Ter e Area_Cons. Essa conclusão faz sentido, visto que a área construída não pode ser maior que a área do terreno e que o imposto normalmente tem regras que levam em conta as duas áreas. Isso pode significar perdas na qualidade do modelo (conclusões feitas pelas estimativas dos coeficientes e poder prediditivo). Assim, deve-se procurar uma combinação (linear, por exemplo) dessas variáveis para ser usada no modelo no lugar delas.
 
-## b)
+## Análise inferencial
 
-\[
-Y = X\beta + \epsilon
-\]
+Sejam $Y_i$ o preço do i-ésimo imóvel e $x_1, ..., x_4$ os valores do imposto, área do terreno, área construída e idade do imóvel, respectivamente. Então $x_1^{*}, ..., x_4^{*}$ são os rescpectivos valores padronizados, ou seja, $x_i^{*} = \frac{x_i - \bar{x}}{DP(x)}, i = 1, ..., 4$, onde DP denota o desvio padrão amostral da covariável.
 
-Onde $Y$ é o preço. $X = [1 \ X_1 ... X_4]$, em que $X_i, i = 1, ..., 4$ são os valores padronizados do imposto, área do terreno, área construída e idade do imóvel, respectivamente. $\beta = (\alpha, \beta_1, ..., \beta_4$, em que $\beta_i, i = 1, ..., 4$ são os coeficientes associados ao imposto, área do terreno, área construída e idade do imóvel, respectivamente; $\alpha$ é o preço médio quando todas as variáveis assumem seu valor médio, visto que não faz sentido falar de preço médio quando as variáveis são nulas.
+O modelo considerado para este estudo inicialmente será o Modelo 1: $Y_i = \beta_0 + \beta_1 x_1^{*} + ... + \beta_4 x_4^{*}  + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, onde $\beta_i, i = 1, ..., 4$ são os coeficientes associados ao imposto, área do terreno, área construída e idade do imóvel padronizados, respectivamente e $\beta_0$ é o preço médio quando todas as covariáveis assumem seu valor médio, visto que não faz sentido que elas assumam valor zero.
+
+### Resultados
+
+A Tabela X apresenta os resultados do ajuste do Modelo 1: termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
 ```{r 6-modelo}
-fit <- mutate_at(df, vars(-Preco), function(x) (x - mean(x)) / sd(x)) %$% 
+modelo_simples <- mutate_at(df, vars(-Preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(Preco ~ Imposto + Area_Ter + Area_Cons + Idade)
-tidy(fit, conf.int = TRUE) %>% 
+
+tidy(modelo_simples, conf.int = TRUE) %>% 
   select(-statistic) %>% 
   knitr::kable()
 ```
 
 Como esperado, a idade do imóvel não impacta no preço do imóvel. No entanto, contrário ao esperado, a área do terreno não impacta o preço nesse  modelo; isso pode ser devido à alta correlação dessa variável com as outras.
 
+A Tabela X apresenta os resultados do ajuste do Modelo 2: $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_3 x_3^{*}  + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, cujos parâmetros têm a interpretação ususal (as mesmas da do Modelo 1) e considera apenas as covariáveis impostos e área construída (padronizadas.
+
 ```{r 6-modelo_reduzido}
-fit <- mutate_at(df, vars(-Preco), function(x) (x - mean(x)) / sd(x)) %$% 
+modelo_reduzido <- mutate_at(df, vars(-Preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(Preco ~ Imposto + Area_Cons)
-tidy(fit, conf.int = TRUE) %>% 
+
+tidy(modelo_reduzido, conf.int = TRUE) %>% 
   select(-statistic) %>% 
   knitr::kable()
 ```
@@ -199,26 +86,7 @@ tidy(fit, conf.int = TRUE) %>%
 ## c)
 
 ```{r 6-plot}
-df <- predict.lm(fit, interval = "prediction") %>% 
-  as_tibble() %>% 
-  cbind(df)
-
-ggplot(df, aes(Area_Ter)) + 
-  geom_pointrange(aes(y = fit, ymin = lwr, ymax = upr), col = "chocolate", shape = 15, alpha = 0.7) + 
-  geom_point(aes(y = Preco), col = "darkviolet", size = 2.5) + 
-  theme_bw()
-
-ggplot(df, aes(Preco, fit)) + 
-  geom_abline(intercept = 0, slope = 1, col = "chocolate") + 
-  geom_point(col = "cadetblue") + 
-  theme_bw()
-
-boxplot(residuals.lm(fit))
-residuals.lm(fit) %>% mutate(df, Residuo = .) %>% 
-  ggplot(aes(Preco, Residuo)) + 
-  geom_hline(yintercept = 0, linetype = "dashed", col = "cadetblue") + 
-  geom_point(col = "chocolate") + 
-  theme_bw()
+plot_prediction(modelo_reduzido, df$Preco, "Preço")
 ```
 
 # 7
