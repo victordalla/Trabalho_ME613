@@ -41,17 +41,13 @@ knitr::opts_chunk$set(
   )
 options(
   OutDec = ",", 
-  knitr.table.format = "latex", 
+  digits = 3, 
   xtable.comment = FALSE
   )
 ```
 
 ```{r lib}
-library(dplyr)
-library(ggplot2)
-library(forcats)
-library(magrittr)
-library(broom)
+
 ```
 
 \begin{titlepage} 

@@ -9,18 +9,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Obs: Caio gosta de legendas em Figuras e Tabelas: embaixo para figuras e em cima para tabelas.
 
-# Introdução
+## Introdução
 
 Apresentar o conjunto de dados: o que são, como foram obtidos e onde obter. Explicar qual é o objetivo do estudo. Mencionar a técnica (modelo) a ser usado e uma referência para ele.
 
-# Análise descritiva
+## Análise descritiva
 
-# Análise Inferencial
 
-Especificar o modelo e explicar seus termos.
 
-# Conclusão
+## Análise Inferencial
 
-Resumir se os modelos se ajustaram bem aos dados, dizer qual foi o melhor/menos pior, o que esse modelo indicou de explicação/conclusão
+- especificar o modelo e explicar seus termos.
+- análise(s) de resíduo(s)
+- hipóteses de interesse (O NÍVEL DE SIGNIFICÂNCIA DEVE SER ESPECIFICADO NO RELATÓRIO)
+-análise de multicolinearidade
+- modelagem a heterocedasticidade
+- gráficos e comentários
+- deverão   ser   usadas   asmetodologias constantes na questão
+- caso o modelo usado não se adeque bem   aos   dados,   comentários   a   respeito   deverão   ser   feitos,   mencionando   que   outras metodologias devem ser utilizadas (não, necessariamente, precisa ser dito quais)
 
-# Referências
+
+## Conclusão
+
+Resumir se os modelos se ajustaram bem aos dados, dizer qual foi o melhor/menos pior, o que esse modelo indicou de explicação/conclusão em termos do problema.
+
+## Referências
