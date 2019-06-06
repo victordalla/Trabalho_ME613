@@ -3,7 +3,7 @@ output:
   pdf_document:
     fig_crop: no
 bibliography: bibliography.bib
-fontsize: 11pt
+fontsize: 10pt
 documentclass: article
 geometry: 
  - a4paper
