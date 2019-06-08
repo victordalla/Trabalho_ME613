@@ -73,7 +73,7 @@ tidy(modelo_simples, conf.int = TRUE) %>%
   knitr::kable()
 ```
 
-Como esperado, a idade do imóvel não impacta no preço do imóvel, visto que seu p-valor (X) não foi significativo (menor que X). No entanto, contrário ao esperado, a área do terreno não impacta o preço nesse modelo ($\text{p-valor}=X < X$) isso pode ser devido à alta correlação dessa variável com as outras.
+Como esperado, a idade do imóvel não impacta no preço do imóvel, visto que seu p-valor (X) para o teste que testa $H_0: \beta_4=0$ \textit{vs} $H_1: \beta_4\ne0$ não foi significativo (menor que X). O p-valor (X) para o teste que testa $H_0: \beta_2=0$ \textit{vs} $H_1: \beta_2\ne0$ não foi significativo (menor que X), contrário ao esperado, assim, a área do terreno não foi relevante para explicar o preço nesse modelo. Isso pode ser devido à alta correlação dessa variável com as outras, mas ela pode vir a ser relevante no modelo ao se remover o termo associado à idade.
 
 Por isso, será ajustado um novo modelo (Modelo 2), que remove o termo associado à idade ($\beta_4$): $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_2 x_2^{*} + \beta_3 x_3^{*}  + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 1).
 
