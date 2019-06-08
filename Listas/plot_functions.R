@@ -24,16 +24,19 @@ plot_residuals <- function(model, binwidth = NULL, bins = NULL) {
     ggplot2::labs(y = "resíduo studentizado") + ggplot2::theme_classic()
   
   gridExtra::grid.arrange(
+    nrow = 2, 
     p + ggplot2::geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + 
       ggplot2::labs(x = "índice"), 
     p + ggplot2::geom_point(aes(x = fitted, y = residual), col = "gray30", alpha = 0.80) + 
-      ggplot2::labs(x = "índice"), 
-    p + ggplot2::geom_histogram(aes(x = residual), fill = "gray30", col = "gray80"), 
+      ggplot2::labs(x = "predito"), 
+    p + ggplot2::geom_histogram(
+      aes(x = residual), fill = "gray30", col = "gray80",
+      binwidth = binwidth, bins = bins
+      ) + ggplot2::labs(x = "resíduo studentizado", y = ""), 
     ggplot2::ggplot(residuals, aes(sample = residual)) + 
       qqplotr::stat_qq_band(bandType = "pointwise") + 
       qqplotr::stat_qq_line() + 
       qqplotr::stat_qq_point(col = "gray20", alpha = 0.80) + 
-      ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic(), 
-    nrow = 2
+      ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic()
   )
 }
