@@ -27,6 +27,7 @@ library(forcats)
 library(magrittr)
 library(broom)
 source("plot_functions.R")
+source("calc.estat.mod.comp.MRNLH.R")
 ```
 
 ```{r import, echo=FALSE}
@@ -137,6 +138,13 @@ tidy(modelo_reduzido, conf.int = TRUE) %>%
   knitr::kable()
 plot_prediction(modelo_reduzido, df$VO2, "VO2")  
 plot_residuals(modelo_reduzido)
+```
+
+Estatísticas de comparação dos modelos
+
+```{r}
+calc.estat.mod.comp.MRNLH(modelo_etiologia)
+calc.estat.mod.comp.MRNLH(modelo_reduzido)
 ```
 
 
