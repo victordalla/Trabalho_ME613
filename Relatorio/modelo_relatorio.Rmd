@@ -1,6 +1,8 @@
 ---
 title: "Modelo de Relatório do fudido"
-output: pdf_document
+output: 
+  pdf_document:
+    fig_crop: no
 ---
 
 ```{r setup, include=FALSE}

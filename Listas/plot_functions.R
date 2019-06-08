@@ -32,7 +32,7 @@ plot_residuals <- function(model, binwidth = NULL, bins = NULL) {
     ggplot2::ggplot(residuals, aes(sample = residual)) + 
       qqplotr::stat_qq_band(bandType = "pointwise") + 
       qqplotr::stat_qq_line() + 
-      qqplotr::stat_qq_point() + 
+      qqplotr::stat_qq_point(col = "gray20", alpha = 0.80) + 
       ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic(), 
     nrow = 2
   )

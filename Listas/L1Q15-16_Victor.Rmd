@@ -1,5 +1,7 @@
 ---
-title: "Lista 1 - Questão 15"
+output: 
+  pdf_document:
+    fig_crop: no
 ---
 
 ```{r setup, include=FALSE}
@@ -12,6 +14,7 @@ knitr::opts_chunk$set(
   )
 options(
   OutDec = ",", 
+  digits = 3, 
   knitr.table.format = "latex", 
   xtable.comment = FALSE
   )
@@ -54,26 +57,34 @@ ggplot(df, aes(etiologia, VO2)) +
 
 ## Análise inferencial
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 1, onde 
+### Modelos
 
-- $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente
-- $\beta_{0}$ é o VO2 esperado quando a carga assume seu valor médio
-- $\beta_{1}$ é a variação esperada em VO2 quando a carga varia em uma unidade
+<!-- O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) desconsiderando as etiologias é $Y_{i j} = \beta_{0} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 1, onde  -->
 
-Agora seja $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
-<!-- $d_j = 1$ quando a etiologia assume o valor associado ao índice $j$ e $d_j = 0$ caso contrário. -->
+<!-- - $Y_{i j}$ e $x_{i j} - \bar{x}$ é o VO2 e a carga (centrada na média) do i-ésimo indivíduo da j-ésima etiologia, respectivamente -->
+<!-- - $\beta_{0}$ é o VO2 esperado quando a carga assume seu valor médio -->
+<!-- - $\beta_{1}$ é a variação esperada em VO2 quando a carga varia em uma unidade -->
 
-O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 2, onde
+Sejam $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
+
+O modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias (com interação entre carga e etiologia) é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 2, onde
 
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
 - $\beta_{1 j}$ é a variação esperada de VO2 quando a carga varia em uma unidade e a etiologia assume o valor associado ao índice $j$
 
-Para o Modelo 1, uma hipótese de interesse é $H_0: \beta_{1} = 0$ \textit{versus} $H_1: \beta_{1} \neq 0$. Em termos do problema, isso significa testar se a carga tem efeito no VO2 de um indivíduo. Para o Modelo 2, uma hipótese de interesse é $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$. Em termos do problema, isso significa testar se os efeitos de VO2 são iguais para todas as etiologias.
+Uma hipótese de interesse é testar se os efeitos de VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
+
+Nesse caso, o modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias de maneita aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
+
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade 
+
 
 ### Resultados
 
-A Tabela X apresenta os resultados do ajuste do modelo do item b): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
+A Tabela X apresenta os resultados do ajuste do Modelo 1 com a parametrização de casela de referência (etiologia "C"): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -86,13 +97,7 @@ tidy(modelo_etiologia, conf.int = TRUE) %>%
 
 Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $0,1$ com exceção de $\beta_{1 2}$, cujo p-valor, $0,06$, foi marginal.
 
-Isso indica que é razoável desconsiderar um modelo aditivo, i.e., sem interações: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
-
-- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
-- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
-- $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade 
-
-A Tabela X apresenta os resultados desse modelo.
+Isso indica que é razoável considerar o Modelo 2 para a análise, i.e., sem interações. A Tabela X apresenta os resultados desse modelo.
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -112,7 +117,7 @@ plot_prediction(modelo_etiologia, df$VO2, "VO2")
 plot_residuals(modelo_etiologia)
 ```
 
-## Modelo reduzido ao máximo
+### Modelo reduzido ao máximo
 
 ```{r}
 df <- mutate(df, etiologia = forcats::fct_collapse(etiologia, Other = c("C", "CH"), IS = "IS", ID = "ID"))
@@ -129,10 +134,7 @@ plot_residuals(modelo_reduzido)
 ```
 
 
-# Comparação de modelos
+## Conclusão
 
-```{r}
-
-```
 
 
