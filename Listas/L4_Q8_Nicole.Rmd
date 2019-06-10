@@ -133,6 +133,8 @@ kable(m)
 
 #Análise do resíduo 
 
+
+ Vamos analisar ne, fazer o que k k 
 <!--Uma hipótese de interesse é testar se os efeitos de VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
 
 Nesse caso, o modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias de maneita aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
