@@ -1,0 +1,140 @@
+--- 
+
+output: 
+  pdf_document:
+    fig_crop: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE
+  )
+options(
+  OutDec = ",", 
+  digits = 4, 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r lib}
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(magrittr)
+library(broom)
+library(xtable)
+library(knitr)
+source("plot_functions.R")
+source("comparacao_de_modelo.R")
+```
+
+```{r dados, echo=FALSE}
+dados <- read.table("salary.txt", header = FALSE, col.names = c("salario_anual", "sexo", "posicao_empresa", "experiencia"))
+
+#dados$posicao_empresa <- as.factor(dados$posicao_empresa)
+```
+
+## Introdução
+
+O conjunto de dados em questão traz informações a respeito de uma amostra aleatória de 220 executivos e apresenta, para cada executivo, o salário anual (em mil USD), o sexo, experiência (em anos) e a posição na empresa (escore que varia de 1 a 9 e, quanto maior o valor, mais alta a posição). Os dados estão disponíveis no site "https://www.ime.usp.br/~giapaula/salary.dat".
+
+O objetivo é estudar o relacionamento do sálario anual em função dos anos de experiência e a posição na empresa para os dois grupos formados pela variável sexo (Feminino e Masculino). Utilizamos a metodologia dos modelos normais lineares homocedásticos, veja
+Draper and Smith (1998), metodologias de verificação da qualidade do ajuste e comparação de modelos apropriados, veja Paula (2013) com o suporte computacional do R, veja Faraway (2014).
+
+## Análise descritiva
+
+Para entender a relação do salário dos executivos em função dos anos de experiência e anos de trabalho separado por sexo, apresentamos na Figura **bla** o gráfico de dispersão entre o salário e os anos de experiência entre homens e mulheres,o gráfico de boxplot do salário para cada posição na empresa e por fim, o gráfico de boxplot do salário separado por sexo.
+
+Conforme revelam os gráficos das Figuras \ref{fig:pos_sal} e \ref{fig:anos_sal}, podemos perceber que a relação entre o salário e a experiência e o salário e o cargo na empresa podem ser representados por uma reta ou uma parábola, já que notamos indícios de aumento do salário com o aumento da posição e com o aumento da experiência para ambos os sexos.
+
+O boxplot apresentado na Figura \ref{fig:sex_sal} mostra que em média, sem considerar os anos de experiência e posição na empresa, o salário dos homens é maior do que o salário das mulheres.
+
+```{r pos_sal, fig.width=4, fig.height=3}
+dados %>%
+  ggplot(aes(posicao_empresa, salario_anual)) +
+  geom_point() +
+  facet_wrap(~sexo)
+#grid.arrange(plot1, plot2, nrow=1, ncol=2)
+```
+
+```{r sex_sal, fig.width= 4, fig.height=3}
+dados %>% 
+  ggplot(aes(sexo, salario_anual)) +
+  geom_boxplot()
+```
+
+```{r anos_sal, fig.width=4, fig.height=3}
+dados %>%
+  ggplot(aes(experiencia, salario_anual)) +
+  geom_point() + 
+  facet_wrap(~sexo)
+```
+
+## Análise inferencial
+
+<!--
+- especificar o modelo
+- análise(s) de resíduo(s)
+- hipóteses de interesse (O NÍVEL DE SIGNIFICÂNCIA DEVE SER ESPECIFICADO NO RELATÓRIO)
+-análise de multicolinearidade
+- modelagem a heterocedasticidade
+- gráficos e comentários
+- deverão   ser   usadas   as metodologias constantes na questão
+- caso o modelo usado não se adeque bem   aos   dados,   comentários   a   respeito   deverão   ser   feitos,   mencionando   que   outras metodologias devem ser utilizadas (não, necessariamente, precisa ser dito quais) -->
+
+Sejam $j = 0, 1$ índices para o sexo Feminino e Masculino, respectivamente. 
+
+O modelo que explica a variação do salário em função dos anos de experiência e a posição na empresa considerando o sexo (com interação entre salário e sexo) é 
+$$Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{1 ij} - \bar{x_1}) + \beta_{2 j} (x_{2 ij} - \bar{x}_2)  + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$$, que será chamado de Modelo 1, onde
+
+- $Y_{i j}$ é o valor do salário do empresário $i$ do sexo $j$
+- $x_{1 i j}$ é o valor da variável experiência do indivíduo $i$ e sexo $j$
+- $x{2 ij}$ é o valor da variável posição na empresa do i-ésimo indivíduo do sexo $j$ 
+- $\beta_{0 j}$ é o salário esperado quando a a posição na empresa e os anos de experiência assumem seu valor médio simultaneamente e o sexo assume o valor associado ao índice $j$
+- $\beta_{1 j}$ é a variação esperada do salário quando o ano de experiência varia em uma unidade e o sexo assume o valor associado ao índice $j$
+- $\beta{2 j}$ é a variação esperada do salário quando a posição na empresa varia em uma unidade e o sexo assume o valor associado ao índice $j$
+
+Uma hipótese de interesse é testar se o efeito dos anos de experiênia é igual para amobos sexos: $H_0: \beta_{1 0} = \beta_{1 1} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre o sexo e os anos de experiência. De forma similar, podemos testar se o efeito da posição na empresa é igual para homens e mulheres, ou seja, $H_0: \beta_{2 0} = \beta_{2 1} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{2 j} \neq 0$
+
+```{r}
+modelo1 <- dados %$%
+  lm(salario_anual ~ sexo*I(experiencia - mean(experiencia)) + sexo*I(posicao_empresa - mean(posicao_empresa)))
+
+matriz1 <- model.matrix(modelo1)
+n <- summary(modelo1)$coefficients
+
+
+
+modelo2 <- dados %$%
+ lm(salario_anual ~ sexo*I(posicao_empresa - mean(posicao_empresa)))
+
+#matriz2 <- model.matrix(modelo2)
+m <- summary(modelo2)$coefficients
+```
+
+```{r}
+#plot_residuals(modelo2)
+plot_residuals(modelo1)
+plot_prediction(modelo1, response = dados$salario_anual, response_name = "salario_anual")
+#tidy(modelo, conf.int = TRUE) %>% 
+#  select(-statistic) %>%
+#  xtable()
+```
+
+```{r}
+kable(n)
+kable(m)
+```
+
+<!--Uma hipótese de interesse é testar se os efeitos de VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
+
+Nesse caso, o modelo que explica a variação do consumo de oxigênio (VO2) da carga de compensação respiratório (carga) considerando as etiologias de maneita aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
+
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade -->
