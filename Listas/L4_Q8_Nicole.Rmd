@@ -134,6 +134,7 @@ kable(m)
 
 #Análise do resíduo 
 
+agora foi hehe
 
  Vamos analisar ne, fazer o que k k 
 <!--Uma hipótese de interesse é testar se os efeitos de VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
