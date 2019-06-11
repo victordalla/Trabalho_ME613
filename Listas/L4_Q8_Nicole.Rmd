@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 43318c7d2b37e14a7bb30e482221794c529a8210
 --- 
 
 output: 
@@ -142,3 +146,38 @@ Nesse caso, o modelo que explica a variação do consumo de oxigênio (VO2) da c
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
 - $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade -->
+<<<<<<< HEAD
+=======
+=======
+---
+title: "Untitled"
+author: "Nicole Nogueira"
+date: "9 de junho de 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+>>>>>>> 6c4b3a9deddf1e5fc632b5e1ffde87d04d56bd0c
+>>>>>>> 43318c7d2b37e14a7bb30e482221794c529a8210
