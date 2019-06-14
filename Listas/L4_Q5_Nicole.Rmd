@@ -1,0 +1,93 @@
+---
+title: "Questão 8 - Lista 4 exercício 5"
+author: "Nicole Nogueira"
+date: "5 de junho de 2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, tidy = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(magrittr)
+library(broom)
+```
+
+
+#Questão 5
+
+##Item a)
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$.
+
+```{r}
+n=100 #tamanho da amostra 
+r= 100 #numero de replicas da simulação- conjunto de valores de Y para um mesmo conjunto de x
+b0 = 1
+b1= 1.5
+sigma2 = 4
+
+
+x <- matrix(data= NA, nrow = n, ncol = r)
+y <- matrix(data= NA, nrow = n, ncol = r)
+param <- matrix(data= NA, nrow = r, ncol = 2)
+
+for (i in 1:r) {
+  x[,i] <- runif(n, 5, 20)
+
+  y[,i]<- b0 + b1*(x[,i] - mean(x[,i])) + rnorm(n, mean = 0, sd= sqrt(sigma2))
+
+  x[,i] <- x[,i] - mean(x[,i])
+  
+  model <- lm(y[,i] ~ x[,i])
+  h <- model$coefficients
+  param[i, ] <- c(h[[1]], h[[2]])
+}
+
+hist(param[,1])
+summary(model)
+```
+
+
+```{r}
+plot_prediction <- function(model, response, response_name = "resposta") {
+  # precisa de dplyr, broom, ggplot2
+  
+  p <- predict.lm(model, interval = "prediction") %>% 
+    dplyr::as_tibble() %>% mutate(response = response) %>% 
+    ggplot(aes(fit, response)) + 
+    geom_point(col = "cadetblue") + 
+    geom_line(aes(y = fit), col = "chocolate") + 
+    geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "coral", alpha = 0.3) + 
+    labs(x = "predição", y = response_name) + theme_classic()
+  p
+}
+
+plot_residuals <- function(model) {
+  # precisa de ggplot2, gridExtra, qqplotr
+  
+  residuals <- data.frame(
+    residual = rstandard(model), 
+    fitted = model$fitted.values, 
+    index = 1:length(model$fitted.values)
+  )
+  p <- ggplot(residuals) + labs(y = "resíduo studentizado") + theme_classic()
+  gridExtra::grid.arrange(
+    p + geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + labs(x = "índice"), 
+    p + geom_point(aes(x = fitted, y = residual), col = "gray30", alpha = 0.80) + labs(x = "índice"), 
+    p + geom_histogram(aes(x = residual), fill = "gray30", col = "gray80"), 
+    ggplot(residuals, aes(sample = residual)) + 
+      qqplotr::stat_qq_band(bandType = "pointwise") + qqplotr::stat_qq_line() + qqplotr::stat_qq_point() + 
+      labs(x = "quantil teórico", y = "quantil amostral") + theme_classic(), 
+    nrow = 2
+  )
+}
+```
+
+```{r}
+plot_prediction(model, y[,1], "Bla")
+plot_residuals(model)
+```
+
