@@ -1,0 +1,76 @@
+--- 
+title: "Questão 5 da lista 4"
+output: 
+  pdf_document:
+    fig_crop: no
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE
+  )
+options(
+  OutDec = ",", 
+  digits = 4, 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r lib}
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(magrittr)
+library(broom)
+library(xtable)
+library(knitr)
+source("plot_functions.R")
+source("comparacao_de_modelo.R")
+```
+
+
+
+#Questão 5
+
+##Item a)
+
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$.
+
+```{r}
+n=100 #tamanho da amostra 
+r= 100 #numero de replicas da simulação- conjunto de valores de Y para um mesmo conjunto de x
+b0 = 1
+b1= 1.5
+sigma2 = 4
+
+
+x <- runif(n, 5, 20)
+
+y <- matrix(data= NA, nrow = n, ncol = r)
+param <- matrix(data= NA, nrow = r, ncol = 2)
+
+for (i in 1:r) {
+
+  y[,i]<- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
+  
+  model <- lm(y[,i] ~ I(x - mean(x)))
+  hat <- model$coefficients
+  param[i, ] <- c(hat[[1]], hat[[2]])
+}
+
+Y <- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
+
+teste<- lm(Y ~ I(x -mean(x)))
+
+
+b1_hat <- sum(Y*(x- mean(x)))/ sum((x - mean(x))^2)
+b0_hat <- mean(Y) 
+
+```
+
+
+
