@@ -1,0 +1,172 @@
+--- 
+title: "Questão 5 da lista 4"
+output: 
+  pdf_document:
+    fig_crop: no
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE
+  )
+options(
+  OutDec = ",", 
+  digits = 4,
+  # knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r libs}
+library(magrittr)
+library(ggplot2)
+library(knitr)
+library(broom)
+source("plot_functions.R")
+```
+
+
+```{r}
+df <- read.table("../Dados/Ratkowsky.dat")
+colnames(df) <- c("idade", "peso")
+```
+
+
+```{r}
+plot(peso ~ idade, data = df)
+```
+
+
+# Modelo Linear Simples
+
+```{r}
+m1 <- lm(peso ~ idade, data = df)
+summary(m1)
+```
+
+`r summary(m1) %>% tidy() %>% kable()`
+
+```{r}
+termplot(m1, data = df, partial.resid = T, se = T)
+```
+
+```{r}
+plot_residuals(m1)
+```
+
+# Modelo Polinomial de Grau 2
+
+```{r}
+m2 <- lm(peso ~ poly(idade, 2, raw = T), data = df)
+summary(m2)
+```
+
+`r summary(m2) %>% tidy() %>% kable()`
+
+```{r}
+termplot(m2, data = df, partial.resid = T, se = T)
+```
+
+```{r}
+plot_residuals(m2)
+```
+
+
+# Modelo Polinomial de Grau 3
+
+```{r}
+m3 <- lm(peso ~ poly(idade, 3, raw = T), data = df)
+summary(m3)
+```
+
+`r summary(m3) %>% tidy() %>% kable()`
+
+```{r}
+termplot(m3, data = df, partial.resid = T, se = T)
+```
+
+```{r}
+plot_residuals(m3)
+```
+
+# Modelos Ponderados
+
+Faz sentido assumir que com o envelhecimento a variância da distribuição dos pesos dos orgãos aumente, uma vez que o desenvolvimento e os hábitos entre os indivíduo são diferentes (isso pode ser observado na primeira figura *adicionar Fig. 1*, os pesos inicialmente são muito similares).
+Desta forma, avaliamos modelar o ajuste ponderando os quadrados mínimos com $w_i = \frac{1}{\hat y_i^{2}}$, ao fazermos isso estamos supondo que a nossa média tem uma relação quadrática com a variância, $\mu = c \sigma^2$.
+
+```{r}
+wts <- 1/fitted(m3)^2
+m4 <- lm(peso ~ poly(df$idade, 3, raw = T), data = df, weights = wts)
+summary(m4)
+```
+
+`r summary(m4) %>% tidy() %>% kable()`
+
+```{r}
+termplot(m4, data = df, se = T, partial.resid = T, transform.x = T)
+```
+
+```{r}
+plot_residuals(m4)
+```
+
+
+# Modelos Ponderados Adicionais
+
+Por curiosidade avaliamos os modelos anteriores utilizando a mesma métrica para ponderar os quadrados mínimos.
+
+```{r}
+wts <- 1/fitted(m2)^2
+m5 <- lm(peso ~ poly(df$idade, 2, raw = T), data = df, weights = wts)
+summary(m5)
+```
+
+`r summary(m5) %>% tidy() %>% kable()`
+
+```{r}
+termplot(m5, data = df, se = T, partial.resid = T, transform.x = T)
+```
+
+```{r}
+plot_residuals(m5)
+```
+
+
+```{r}
+wts <- 1/fitted(m1)^2
+m6 <- lm(peso ~ df$idade, data = df, weights = wts)
+summary(m6)
+```
+
+`r summary(m6) %>% tidy() %>% kable()`
+
+
+```{r}
+termplot(m6, data = df, se = T, partial.resid = T, transform.x = T)
+```
+
+```{r}
+plot_residuals(m5)
+```
+
+### AIC
+
+`r AIC(m1, m2, m3, m4, m5, m6) %>% kable()`
+
+### BIC
+
+`r BIC(m1, m2, m3, m4, m5, m6) %>% kable()`
+
+### $R^2$
+
+```{r}
+rsq <- function(x) summary(x)$r.squared
+r2 <- data.frame(R2 = c(rsq(m1), rsq(m2), rsq(m3), rsq(m4), rsq(m5), rsq(m6)))
+rownames(r2) <- c("m1", "m2", "m3", "m4", "m5", "m6")
+```
+
+`r r2 %>% kable()`
+
