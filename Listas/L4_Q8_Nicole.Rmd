@@ -1,6 +1,4 @@
-
 --- 
-
 output: 
   pdf_document:
     fig_crop: no
@@ -49,27 +47,37 @@ Draper and Smith (1998), metodologias de verificação da qualidade do ajuste e 
 
 ## Análise descritiva
 
-Para entender a relação do salário dos executivos em função dos anos de experiência e anos de trabalho separado por sexo, apresentamos na Figura **bla** o gráfico de dispersão entre o salário e os anos de experiência entre homens e mulheres,o gráfico de boxplot do salário para cada posição na empresa e por fim, o gráfico de boxplot do salário separado por sexo.
+Para entender a relação do salário dos executivos em função dos anos de experiência e anos de trabalho separado por sexo, apresentamos na Figura \ref{fig:anos_sal} o gráfico de dispersão entre o salário e os anos de experiência entre homens e mulheres,o gráfico de boxplot do salário para cada posição na empresa e por fim, o gráfico de boxplot do salário separado por sexo na Figura \ref{fig:sex_sal}.
 
 Conforme revelam os gráficos das Figuras \ref{fig:pos_sal} e \ref{fig:anos_sal}, podemos perceber que a relação entre o salário e a experiência e o salário e o cargo na empresa podem ser representados por uma reta ou uma parábola, já que notamos indícios de aumento do salário com o aumento da posição e com o aumento da experiência para ambos os sexos.
 
 O boxplot apresentado na Figura \ref{fig:sex_sal} mostra que em média, sem considerar os anos de experiência e posição na empresa, o salário dos homens é maior do que o salário das mulheres.
 
-```{r pos_sal, fig.width=4, fig.height=3}
+```{r pos_sal, fig.width=6, fig.height=3, fig.cap="Disperção", fig.pos="center"}
 dados %>%
   ggplot(aes(posicao_empresa, salario_anual)) +
   geom_point() +
-  facet_wrap(~sexo)
+  facet_wrap(~sexo) +
+  theme_bw()
 #grid.arrange(plot1, plot2, nrow=1, ncol=2)
 ```
 
-```{r sex_sal, fig.width= 4, fig.height=3}
+```{r sex_sal, fig.width= 4, fig.height=3, fig.pos="center", fig.cap="bla bla"}
 dados %>% 
   ggplot(aes(sexo, salario_anual)) +
-  geom_boxplot()
+  geom_boxplot()+
+  theme_classic()
 ```
 
-```{r anos_sal, fig.width=4, fig.height=3}
+```{r}
+dados %>%
+  ggplot(aes(experiencia, salario_anual, fill = factor(posicao_empresa), color = factor(posicao_empresa))) + 
+  geom_point()+
+  facet_grid(~sexo)+
+  theme_minimal()
+```
+
+```{r anos_sal, fig.width=6, fig.height=3}
 dados %>%
   ggplot(aes(experiencia, salario_anual)) +
   geom_point() + 
@@ -106,31 +114,64 @@ Uma hipótese de interesse é testar se o efeito dos anos de experiênia é igua
 modelo1 <- dados %$%
   lm(salario_anual ~ sexo*I(experiencia - mean(experiencia)) + sexo*I(posicao_empresa - mean(posicao_empresa)))
 
-matriz1 <- model.matrix(modelo1)
-n <- summary(modelo1)$coefficients
-
-
-
-modelo2 <- dados %$%
- lm(salario_anual ~ sexo*I(posicao_empresa - mean(posicao_empresa)))
-
-#matriz2 <- model.matrix(modelo2)
-m <- summary(modelo2)$coefficients
-```
-
-```{r}
-#plot_residuals(modelo2)
 plot_residuals(modelo1)
 plot_prediction(modelo1, response = dados$salario_anual, response_name = "salario_anual")
-#tidy(modelo, conf.int = TRUE) %>% 
-#  select(-statistic) %>%
-#  xtable()
+tidy(modelo1, conf.int = TRUE) %>% 
+  select(-statistic) %>%
+  kable()
+
+kable(calc.estat.mod.comp.MRNLH(modelo1))
 ```
 
 ```{r}
-kable(n)
-kable(m)
+modelo5 <- dados %$%
+  lm(salario_anual ~ sexo + I(experiencia - mean(experiencia))*I(posicao_empresa - mean(posicao_empresa)))
+
+plot_residuals(modelo5)
+plot_prediction(modelo5, response = dados$salario_anual, response_name = "salario_anual")
+tidy(modelo4, conf.int = TRUE) %>% 
+  select(-statistic) %>%
+  kable()
+kable(calc.estat.mod.comp.MRNLH(modelo5))
 ```
+
+
+```{r}
+modelo4 <- dados %$%
+  lm(salario_anual ~ sexo*I(experiencia - mean(experiencia)) + I(posicao_empresa - mean(posicao_empresa)))
+
+plot_residuals(modelo4)
+plot_prediction(modelo4, response = dados$salario_anual, response_name = "salario_anual")
+tidy(modelo4, conf.int = TRUE) %>% 
+  select(-statistic) %>%
+  kable()
+kable(calc.estat.mod.comp.MRNLH(modelo4))
+```
+
+```{r}
+ggplot(dados, aes(x = experiencia, y = salario_anual)) +
+  geom_point() +
+  facet_grid(~sexo) + 
+  geom_smooth(method = "lm")
+
+ggplot(dados, aes(x = posicao_empresa, y = salario_anual)) +
+  geom_point() +
+  facet_grid(~sexo) + 
+  geom_smooth(method = "lm")
+```
+
+
+```{r}
+modelo2 <- dados %$%
+  lm(salario_anual ~ sexo + I(experiencia - mean(experiencia)) + I(posicao_empresa - mean(posicao_empresa)))
+plot_residuals(modelo2)
+plot_prediction(modelo2, response = dados$salario_anual, response_name = "salario_anual")
+tidy(modelo2, conf.int = TRUE) %>% 
+  select(-statistic) %>%
+  kable()
+kable(calc.estat.mod.comp.MRNLH(modelo2))
+```
+
 
 #Análise do resíduo 
 
