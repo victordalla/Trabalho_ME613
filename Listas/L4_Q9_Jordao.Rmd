@@ -99,14 +99,14 @@ Desta forma, avaliamos modelar o ajuste ponderando os quadrados mínimos com $w_
 
 ```{r}
 wts <- 1/fitted(m3)^2
-m4 <- lm(peso ~ poly(df$idade, 3, raw = T), data = df, weights = wts)
+m4 <- lm(peso ~ poly(idade, 3, raw = T), data = df, weights = wts)
 summary(m4)
 ```
 
 `r summary(m4) %>% tidy() %>% kable()`
 
 ```{r}
-termplot(m4, data = df, se = T, partial.resid = T, transform.x = T)
+termplot(m4, data = df, se = T, partial.resid = T)
 ```
 
 ```{r}
@@ -120,14 +120,14 @@ Por curiosidade avaliamos os modelos anteriores utilizando a mesma métrica para
 
 ```{r}
 wts <- 1/fitted(m2)^2
-m5 <- lm(peso ~ poly(df$idade, 2, raw = T), data = df, weights = wts)
+m5 <- lm(peso ~ poly(idade, 2, raw = T), data = df, weights = wts)
 summary(m5)
 ```
 
 `r summary(m5) %>% tidy() %>% kable()`
 
 ```{r}
-termplot(m5, data = df, se = T, partial.resid = T, transform.x = T)
+termplot(m5, data = df, se = T, partial.resid = T)
 ```
 
 ```{r}
@@ -137,7 +137,7 @@ plot_residuals(m5)
 
 ```{r}
 wts <- 1/fitted(m1)^2
-m6 <- lm(peso ~ df$idade, data = df, weights = wts)
+m6 <- lm(peso ~ idade, data = df, weights = wts)
 summary(m6)
 ```
 
@@ -145,27 +145,48 @@ summary(m6)
 
 
 ```{r}
-termplot(m6, data = df, se = T, partial.resid = T, transform.x = T)
+termplot(m6, data = df, se = T, partial.resid = T)
 ```
 
 ```{r}
-plot_residuals(m5)
+plot_residuals(m6)
 ```
+
+
+# Modelo Com Transformação de Variável
+
+```{r}
+m7 <- lm(peso ~ log(idade), data = df)
+summary(m7)
+```
+
+`r summary(m7) %>% tidy() %>% kable()`
+
+
+```{r}
+termplot(m7, data = df, se = T, partial.resid = T)
+```
+
+```{r}
+plot_residuals(m7)
+```
+
 
 ### AIC
 
-`r AIC(m1, m2, m3, m4, m5, m6) %>% kable()`
+`r AIC(m1, m2, m3, m4, m5, m6, m7) %>% kable()`
 
 ### BIC
 
-`r BIC(m1, m2, m3, m4, m5, m6) %>% kable()`
+`r BIC(m1, m2, m3, m4, m5, m6, m7) %>% kable()`
 
 ### $R^2$
 
 ```{r}
 rsq <- function(x) summary(x)$r.squared
-r2 <- data.frame(R2 = c(rsq(m1), rsq(m2), rsq(m3), rsq(m4), rsq(m5), rsq(m6)))
-rownames(r2) <- c("m1", "m2", "m3", "m4", "m5", "m6")
+r2 <- data.frame(R2 = c(rsq(m1), rsq(m2), rsq(m3), rsq(m4), rsq(m5),
+                        rsq(m6), rsq(m7)))
+rownames(r2) <- c("m1", "m2", "m3", "m4", "m5", "m6", "m7")
 ```
 
 `r r2 %>% kable()`
