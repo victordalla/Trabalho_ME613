@@ -41,7 +41,8 @@ source("comparacao_de_modelo.R")
 $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$.
 
 ```{r}
-n=100 #tamanho da amostra 
+set.seed(204186)
+n=50 #tamanho da amostra 
 r= 100 #numero de replicas da simulação- conjunto de valores de Y para um mesmo conjunto de x
 b0 = 1
 b1= 1.5
@@ -49,28 +50,50 @@ sigma2 = 4
 
 
 x <- runif(n, 5, 20)
+y <- matrix(data= NA, nrow = n, ncol = r) #cada coluna é uma amostra
 
-y <- matrix(data= NA, nrow = n, ncol = r)
-param <- matrix(data= NA, nrow = r, ncol = 2)
+b1_hat <- matrix(data= NA, nrow = r, ncol = 4)
+b0_hat <- matrix(data= NA, nrow = r, ncol = 4)
+sigma2_hat <- c()
+
+#sum(y[,i]*(x- mean(x)))/ sum((x - mean(x))^2)
 
 for (i in 1:r) {
 
-  y[,i]<- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
-  
+  y[,i] <- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
   model <- lm(y[,i] ~ I(x - mean(x)))
-  hat <- model$coefficients
-  param[i, ] <- c(hat[[1]], hat[[2]])
+  stats <- tidy(model, conf.int = TRUE)
+  
+  b1_hat[i, 1] <- stats$estimate[2]
+  b1_hat[i, 2] <- stats$p.value[2] #testa de b1 = 0
+  b1_hat[i, 3] <- stats$conf.low[2]
+  b1_hat[i, 4] <- stats$conf.high[2]
+  
+  b0_hat[i, 1] <- stats$estimate[1]
+  b0_hat[i, 2] <- stats$p.value[1]
+  b0_hat[i, 3] <- stats$conf.low[1]
+  b0_hat[i, 4] <- stats$conf.high[1]
+  
+  sigma2_hat[i] <- sum((y[,i] - b0_hat[,1] - b1_hat[,1]*(x - mean(x)))^2)/n-2
 }
 
-Y <- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
+b0_hat <- as.data.frame(b0_hat)
+colnames(b0_hat) <- c("estimativa", "p-valor", "ic.low", "ic.high")
 
-teste<- lm(Y ~ I(x -mean(x)))
+teste <- data.frame(Variable = rownames(summary(model)$coef),
+                    coefficient = summary(model)$coef[,1],
+                    SE= summary(model)$coef[,2])
+interval <- qnorm((1-0.95)/2)
 
+ggplot(b0_hat, aes(x = 1:r, y = estimativa)) +
+  geom_point(size = 1) +
+  geom_errorbar(aes(ymax = ic.high, ymin = ic.low))+
+  hline
 
-b1_hat <- sum(Y*(x- mean(x)))/ sum((x - mean(x))^2)
-b0_hat <- mean(Y) 
+hist(sigma2_hat)
 
 ```
+
 
 
 
