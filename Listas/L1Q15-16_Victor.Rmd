@@ -123,7 +123,7 @@ tidy(modelo_etiologia, conf.int = TRUE) %>%
   knitr::kable(caption = "", label = "tab:modelo2")
 ```
 
-A Figura \ref{fig:pred}} apresenta o gráfiCo do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
+A Figura \ref{fig:pred}} apresenta o gráfiCo do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições a 95\% (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
 
 A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
 
