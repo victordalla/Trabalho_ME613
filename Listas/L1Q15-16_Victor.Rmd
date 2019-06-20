@@ -2,6 +2,13 @@
 output: 
   pdf_document:
     fig_crop: no
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
 ---
 
 ```{r setup, include=FALSE}
@@ -9,8 +16,7 @@ knitr::opts_chunk$set(
   echo = FALSE, 
   message = FALSE,
   warning = FALSE,
-  tidy.opts = list(width.cutoff = 60),
-  tidy = TRUE
+  fig.align = "center", fig.height = 3, fig.width = 5
   )
 options(
   OutDec = ",", 
@@ -40,19 +46,27 @@ df <- read.table(
 
 ## Introdução
 
-Os dados são isso e aquilo. O objetivo é sei lá, que será estudado através do modelo X.
+O conjunto de dados é referente a um estudo sobre teste de esforço cardiopulmonar em pacientes com insufiência cardíaca realizado no InCor da Faculdade de Medicina da USP.
+O objetivo é comparar os grupos formados pelas diferentes etiologias cardíacas analisando variação do consumo de oxigênio (VO2) no ponto de compensação respiratório (ml/(kg.min)) em função da carga (carga) utilizada na esteira ergométrica para para pacientes com diferentes etiologias cardíacas.
 
 ## Análise descritiva
 
-Na figura abaixo estão os boxplots do consumo de oxigênio (VO2) para cada etiologia. Ela indica que o VO2 da etiologia "C" é em média maior que o VO2 das demais etiologias. 
+Na Figura \ref{fig:boxplot} estão os boxplots do consumo de oxigênio (VO2) para cada etiologia. Ela indica que o consumo de oxigênio da etiologia "C" é em média maior que o VO2 das demais etiologias enquanto que o consumo de oxigênio médio da etiologia "IS" é em média menor que o consumo das restantes. Apesar de o consumo de oxigênio ter distribuição diferente para cada etiologia segundo esses boxplots (\ref{fig:boxplot}), essa diferença não é forte e não é possível concluir, apenas da através da análise descritiva, que o consumo de oxigênio médio é diferente para as etiologias.
 
-Apesar de o VO2 ter distribuição diferente para as outras etiologias, essa diferença é mais atenuada e não é possível concluir, apenas da através da análise descritiva, que o VO2 médio é diferente para as etiologias "CH", "ID" e "IS".
+Na Figura \ref{fig:dispersao}, temos os gráficos de dispersão do consumo de oxigênio (VO2) para cada etiologia cardíaca. Pode-se perceber que a relação entre a carga submetida e o consumo de oxigênio é positiva, e é razoável ser representada por uma reta.
 
-```{r explore}
+```{r, fig.cap="\\label{fig:boxplot}"}
 ggplot(df, aes(etiologia, VO2)) + 
   geom_boxplot() + 
   geom_smooth(method = "lm", se = FALSE) +
   theme_classic()
+```
+
+```{r, fig.cap="\\label{fig:dispersao}"}
+ggplot(df, aes(carga, VO2)) + 
+  geom_point(alpha= 0.8) + 
+    facet_wrap(~ etiologia) +
+      theme_bw()
 ```
 
 ## Análise inferencial
@@ -84,7 +98,7 @@ Nesse caso, o modelo que explica a variação do consumo de oxigênio (VO2) da c
 
 ### Resultados
 
-A Tabela X apresenta os resultados do ajuste do Modelo 1 com a parametrização de casela de referência (etiologia "C"): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
+A Tabela \ref{tab:modelo1} apresenta os resultados do ajuste do Modelo 1 com a parametrização de casela de referência (etiologia "C"): termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -92,12 +106,14 @@ modelo_etiologia <- df %$%
 
 tidy(modelo_etiologia, conf.int = TRUE) %>% 
   select(-statistic) %>% 
-  knitr::kable()
+  knitr::kable(caption = "", label = "tab:modelo1")
 ```
 
-Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $0,1$ com exceção de $\beta_{1 2}$, cujo p-valor, $0,06$, foi marginal.
+Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $\alpha$ (embora$\beta_{1 2}$ tenha tido seu p-valor marginal, $0,06$).
 
-Isso indica que é razoável considerar o Modelo 2 para a análise, i.e., sem interações. A Tabela X apresenta os resultados desse modelo.
+Isso indica que é razoável considerar o Modelo 2 para a análise, i.e., sem interações. A Tabela \ref{tab:modelo2} apresenta os resultados desse modelo. Nota-se que o coeficiente associado à carga é muito significativo, o que confirma a crença inicial, através da análise de dados, de que há uma relação positiva entre carga e consumo de oxigênio.
+
+REALIZAR TESTE CB=0 PARA SABER SE TEM DIFERENÇA ENTRE AS ETIOLOGIAS.
 
 ```{r}
 modelo_etiologia <- df %$%
@@ -105,21 +121,25 @@ modelo_etiologia <- df %$%
 
 tidy(modelo_etiologia, conf.int = TRUE) %>% 
   select(-statistic) %>% 
-  knitr::kable()
+  knitr::kable(caption = "", label = "tab:modelo2")
 ```
 
-A Figura X apresenta o gráfio do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta).
+A Figura \ref{fig:pred}} apresenta o gráfiCo do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
 
-A Figura X apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
+A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
 
-```{r}
+Portanto, é preciso um mais adequado para esta análise. Uma sugestão é o uso de uma distribuição contínua com suporte postivo (e.g. Gama) que descreva melhor a variável resposta (consumo de oxigênio), que pode ser modelado através de Modelos Lineares Generalizados.
+
+```{r, fig.cap="\\label{fig:pred}"}
 plot_prediction(modelo_etiologia, df$VO2, "VO2")  
+```
+
+```{r, fig.cap="\\label{fig:resid}"}
 plot_residuals(modelo_etiologia)
 ```
 
-### Modelo reduzido ao máximo
 
-```{r}
+```{r, eval=FALSE}
 df <- mutate(df, etiologia = forcats::fct_collapse(etiologia, Other = c("C", "CH"), IS = "IS", ID = "ID"))
 
 modelo_reduzido <- df %$%
@@ -136,5 +156,5 @@ plot_residuals(modelo_reduzido)
 
 ## Conclusão
 
-
+Apesar de o modelo proposto para a análise (Modelo 2) não ter sido adequado, há evidências (descritivas e inferenciais) de que existe uma relação positiva entre a carga utilizada na esteira ergométrica e variação consumo de oxigênio no ponto de compensação respiratório. Além disso, QUAL A CONCLUSAO PARA AS ESTIOLOGIAS?.
 
