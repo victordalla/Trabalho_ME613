@@ -46,8 +46,7 @@ df <- read.table(
 
 ## Introdução
 
-O conjunto de dados é referente a um estudo sobre teste de esforço cardiopulmonar em pacientes com insufiência cardíaca realizado no InCor da Faculdade de Medicina da USP.
-O objetivo é comparar os grupos formados pelas diferentes etiologias cardíacas analisando variação do consumo de oxigênio (VO2) no ponto de compensação respiratório (ml/(kg.min)) em função da carga (carga) utilizada na esteira ergométrica para para pacientes com diferentes etiologias cardíacas.
+O conjunto de dados é referente a um estudo sobre teste de esforço cardiopulmonar em pacientes com insufiência cardíaca realizado no InCor da Faculdade de Medicina da USP. O objetivo é comparar os grupos formados pelas diferentes etiologias cardíacas analisando variação do consumo de oxigênio (VO2) no ponto de compensação respiratório (ml/(kg.min)) em função da carga (carga) utilizada na esteira ergométrica para para pacientes com diferentes etiologias cardíacas. Para isso, serão ajustados modelos lineares e seus coeficientes analisados, sib um nível de significância de $\alpha=0,05$.
 
 ## Análise descritiva
 
@@ -64,7 +63,7 @@ ggplot(df, aes(etiologia, VO2)) +
 
 ```{r, fig.cap="\\label{fig:dispersao}"}
 ggplot(df, aes(carga, VO2)) + 
-  geom_point(alpha= 0.8) + 
+  geom_point(col = "gray20", alpha = 0.8) + 
     facet_wrap(~ etiologia) +
       theme_bw()
 ```
