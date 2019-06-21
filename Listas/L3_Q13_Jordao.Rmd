@@ -1,0 +1,143 @@
+--- 
+title: "Questão 7"
+output: 
+  pdf_document:
+    fig_crop: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE
+  )
+options(
+  OutDec = ",", 
+  digits = 4,
+  # knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+
+
+```{r lib}
+library(knitr)
+library(readr)
+library(magrittr)
+library(ggplot2)
+library(dplyr)
+library(broom)
+source("plot_functions.R")
+```
+
+```{r 12/13-import, echo=FALSE}
+df <- read_table("../Dados/Sef1999REG.prn", col_names = F)
+df <- df %>% transmute(Individuo = X1,
+                       Grupo = factor(X2),
+                       Escova = factor(X3),
+                       Dentrificio = factor(X4),
+                       Dia = X5,
+                       Antes = X6,
+                       Depois = X7,
+                       Razao = Depois / Antes,
+                       Centrada = (Depois - Antes) / Antes)
+```
+
+Com o objetivo de comparar a eficácia entre escovas de dentes comuns e escovas de dentes do tipo monobloco com e sem o uso de dentrifício (pasta de dente) avaliamos duas variáveis a razão do Indíce de Placa Bacteriana (IPB) antes e depois da escovações com as condições citadas anteriormente. Desta forma sendo inicialmente nossa variável resposta $\frac{IPB_{depois}}{IPB_{antes}}$, quanto menor melhor o desempenho na redução das placas.
+
+```{r 12-explore, fig.cap="Gráfico da relação entre o IPB antes e depois da escovação" }
+df %>% ggplot(aes(x = Antes, y = Depois)) +
+  geom_point() +
+  facet_grid(Dentrificio ~ Escova) + theme_bw()
+```
+
+De forma exploratório observamos que as 4 retas são muito similares, sendo nosso principalmente interesse o coeficiente de inclinação das mesmas.
+
+Inicialmente ajustamos um modelo levando em conta os dois fatores *tipo da escova* e *uso do dentrifício*.
+
+```{r}
+m1 <- lm(Razao ~ Escova * Dentrificio,
+         data = df)
+```
+
+`r m1 %>% tidy() %>% kable()`
+
+Observamos que os coeficientes dos termos do *dentrifício* e o da interação entre o uso da *escova monobloco* e do *dentrifício* estão altos temos evidências que podemos reduzir o modelo.
+
+Entre tanto, como o termo de maior coeficiente é relacionado com a interação, o termo da interação será removido antes.
+
+```{r}
+m2 <- lm(Razao ~ Escova + Dentrificio,
+         data = df)
+```
+
+`r m2 %>% tidy() %>% kable()`
+
+O coeficiente da covariável dos uso de *dentrifício* continua não sendo significante e será removido.
+
+```{r}
+m3 <- lm(Razao ~ Escova,
+         data = df)
+stt <- summary(m3)
+```
+
+`r m3 %>% tidy() %>% kable()`
+
+```{r}
+plot_residuals(m3)
+```
+
+
+Pelo modelo reduzido temos evidências que apenas o *tipo da escova* leva a diferenças significantes na razão $\frac{IPB_{depois}}{IPB_{antes}}$, resultando em que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+
+Buscando responder as mesmas perguntas, ajustamos um novo considerando $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$.
+
+```{r fig.cap="Gráfio da relação entre o denominador e o numerador da nova variável resposta"}
+df %>% ggplot(aes(x = Antes, y = Depois - Antes)) +
+  geom_point() +
+  facet_grid(Dentrificio ~ Escova) + theme_bw()
+```
+
+```{r}
+m4 <- lm(Centrada ~ Escova * Dentrificio,
+         data = df)
+```
+
+`r m4 %>% tidy() %>% kable()`
+
+Como no caso anterior observamos que a presença de *dentrifício* não é significativa, tanto sozinhos, quanto em conjunto com o outro fator, *tipo da escova*.
+
+```{r}
+m5 <- lm(Centrada ~ Escova + Dentrificio,
+         data = df)
+```
+
+`r m5 %>% tidy() %>% kable()`
+
+O novo modelo ajustado não apresenta melhora na significância do fator do *dentrifício*.
+
+```{r}
+m6 <- lm(Centrada ~ Escova,
+         data = df)
+stt <- summary(m6)
+```
+
+`r m6 %>% tidy() %>% kable()`
+
+Podemos observar que os coeficientes restantes são significativos, assim avaliamos os resíduos resultantes.
+
+Para este novo modelo temos que o uso das escovas convencionais reduzem `r m6$coefficients[1]` $\pm$ `r stt$coefficients[3]` em média o IPB encontrado antes da escovação e uso da escova monobloco `r m6$coefficients[1] + m6$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+
+
+```{r}
+plot_residuals(m6)
+```
+
+Como no caso anterior, pelo resíduos o modelo não parece respeitar as suposições do requeridas pelo Modelo Linear Simples Homocedástico.
+
+Podemos concluir que o deslocamento na posição da variável de interesse não resulto em diferenças nas conclusões das análises
+
+Para um estudo mais aprofundado para relação da razão do $IPB_{depois}$ sobre o $IPB_{antes}$ um modelo multiplicativo poderia ser mais adequado modelando o $IPB_{depois}$ em função dos fatores e do $IPB_antes$.
