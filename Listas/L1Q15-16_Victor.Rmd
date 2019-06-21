@@ -54,14 +54,14 @@ Na Figura \ref{fig:boxplot} estão os boxplots do consumo de oxigênio (VO2) par
 
 Na Figura \ref{fig:dispersao}, temos os gráficos de dispersão do consumo de oxigênio (VO2) para cada etiologia cardíaca. Pode-se perceber que a relação entre a carga submetida e o consumo de oxigênio é positiva, e é razoável ser representada por uma reta.
 
-```{r, fig.cap="\\label{fig:boxplot}"}
+```{r, fig.cap="Boxplot da variação do consumo de oxigênio (VO2) para cada etiologia.\\label{fig:boxplot}"}
 ggplot(df, aes(etiologia, VO2)) + 
   geom_boxplot() + 
   geom_smooth(method = "lm", se = FALSE) +
   theme_classic()
 ```
 
-```{r, fig.cap="\\label{fig:dispersao}"}
+```{r, fig.cap="Gráfico de dispersão da variação do consumo de oxigênio (VO2) em função da carga utilizada na esteira para cada etiologia.\\label{fig:dispersao}"}
 ggplot(df, aes(carga, VO2)) + 
   geom_point(col = "gray20", alpha = 0.8) + 
     facet_wrap(~ etiologia) +
@@ -103,14 +103,33 @@ A Tabela \ref{tab:modelo1} apresenta os resultados do ajuste do Modelo 1 com a p
 modelo_etiologia <- df %$%
   lm(VO2 ~ etiologia * I(carga - mean(carga)))
 
-tidy(modelo_etiologia, conf.int = TRUE) %>% 
-  select(-statistic) %>% 
-  knitr::kable(caption = "", label = "tab:modelo1")
+# tidy(modelo_etiologia, conf.int = TRUE) %>% 
+#   select(-statistic) %>% 
+#   knitr::kable(caption = "", label = "tab:modelo1")
 ```
+
+\begin{table}[ht]
+\centering
+\caption{Resultados do Modelo 1.}
+\label{tab:modelo1}
+\begin{tabular}{lcccc}
+\hline
+Termo             & Estimativa & EP    & p-valor          & IC(95\%)             \\ \hline
+(Intercept)       & 15,351     & 0,490 & \textless{}0,001 & {[}14,380; 16,323{]} \\
+etiologiaCH       & 0,409      & 0,727 & 0,575            & {[}-1,031; 1,849{]}  \\
+etiologiaID       & -1,890     & 0,732 & 0,011            & {[}-3,341; -0,438{]} \\
+etiologiaIS       & -1,257     & 0,806 & 0,122            & {[}-2,854; 0,341{]}  \\
+carga             & 0,102      & 0,011 & \textless{}0,001 & {[}0,080; 0,125{]}   \\
+etiologiaCH:carga & 0,039      & 0,021 & 0,066            & {[}-0,003; 0,082{]}  \\
+etiologiaID:carga & -0,023     & 0,021 & 0,262            & {[}-0,064; 0,018{]}  \\
+etiologiaIS:carga & -0,022     & 0,024 & 0,375            & {[}-0,070; 0,027{]}  \\
+\hline
+\end{tabular}
+\end{table}
 
 Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $\alpha$ (embora$\beta_{1 2}$ tenha tido seu p-valor marginal, $0,06$).
 
-Isso indica que é razoável considerar o Modelo 2 para a análise, i.e., sem interações. A Tabela \ref{tab:modelo2} apresenta os resultados desse modelo. Nota-se que o coeficiente associado à carga é muito significativo, o que confirma a crença inicial, através da análise de dados, de que há uma relação positiva entre carga e consumo de oxigênio.
+Isso indica que é razoável considerar o Modelo 2 para a análise, ou seja, desconsiderar as interações. A Tabela \ref{tab:modelo2} apresenta os resultados desse modelo. Nota-se que o coeficiente associado à carga é muito significativo, o que confirma a crença inicial, através da análise de dados, de que há uma relação positiva entre carga e consumo de oxigênio.
 
 REALIZAR TESTE CB=0 PARA SABER SE TEM DIFERENÇA ENTRE AS ETIOLOGIAS.
 
@@ -118,22 +137,38 @@ REALIZAR TESTE CB=0 PARA SABER SE TEM DIFERENÇA ENTRE AS ETIOLOGIAS.
 modelo_etiologia <- df %$%
   lm(VO2 ~ etiologia + I(carga - mean(carga)))
 
-tidy(modelo_etiologia, conf.int = TRUE) %>% 
-  select(-statistic) %>% 
-  knitr::kable(caption = "", label = "tab:modelo2")
+# tidy(modelo_etiologia, conf.int = TRUE) %>% 
+#   select(-statistic) %>% 
+#   knitr::kable(caption = "", label = "tab:modelo2")
 ```
 
-A Figura \ref{fig:pred}} apresenta o gráfiCo do VO2 em função da carga, a reta ajustada e o intervalo de confiança para as predições a 95\% (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
+\begin{table}[ht]
+\centering
+\caption{Resultados do Modelo 2.}
+\label{tab:modelo2}
+\begin{tabular}{lcccc}
+\hline
+Termo       & Estimativa & EP    & p-valor          & IC(95\%)             \\ \hline
+(Intercept) & 15,356     & 0,463 & \textless{}0,001 & {[}14,439; 16,272{]} \\
+etiologiaCH & 0,198      & 0,722 & 0,784            & {[}-1,232; 1,629{]}  \\
+etiologiaID & -1,579     & 0,718 & 0,030            & {[}-3,001; -0,156{]} \\
+etiologiaIS & -0,917     & 0,761 & 0,231            & {[}-2,424; 0,591{]}  \\
+carga       & 0,102      & 0,008 & \textless{}0,001 & {[}0,086; 0,118{]}   \\
+\hline
+\end{tabular}
+\end{table}
 
-A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
+A Figura \ref{fig:pred} apresenta o gráfiCo do VO2 em função da carga, a reta ajustada no Modelo 2 e o intervalo de confiança para as predições a 95\% (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
 
-Portanto, é preciso um mais adequado para esta análise. Uma sugestão é o uso de uma distribuição contínua com suporte postivo (e.g. Gama) que descreva melhor a variável resposta (consumo de oxigênio), que pode ser modelado através de Modelos Lineares Generalizados.
+A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos do Modelo 2: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
 
-```{r, fig.cap="\\label{fig:pred}"}
+Portanto, é preciso um modelo mais adequado para esta análise. Uma sugestão é o uso de uma distribuição contínua com suporte postivo (e.g. Gama) que descreva melhor a variável resposta (consumo de oxigênio), que pode ser modelado através de Modelos Lineares Generalizados.
+
+```{r, fig.cap="Gráfico da predição \textit{versus} VO2 observado. A reta é a reta ajustado pelo Modelo 2. A banda ao redor da reta é o intervalo de confiança para as predições a 95\\%.\\label{fig:pred}"}
 plot_prediction(modelo_etiologia, df$VO2, "VO2")  
 ```
 
-```{r, fig.cap="\\label{fig:resid}"}
+```{r, fig.cap="Análise dos resíduos (studentizados) do Modelo 2.\\label{fig:resid}"}
 plot_residuals(modelo_etiologia)
 ```
 
