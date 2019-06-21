@@ -57,6 +57,7 @@ Os dados são referentes ao preço de venda de 27 imóveis (em 1000 USD), em rel
 ## Análise descritiva
 
 ```{r, fig.cap="\\label{fig:dispersao}"}
+#Gráfico de dispersão para o preço de venda dos imóveis em função da área construída (are_cons), área do terreno (area_ter), idade e imposto.
 gather(df, "covar", "valor", -preco) %>% 
   ggplot(aes(valor, preco)) + geom_point(col = "gray20", alpha = 0.8) + 
   labs(x = "", y = "preço") + 
@@ -69,10 +70,11 @@ gather(df, "covar", "valor", -preco) %>%
 # plot(df$idade, df$preco, type="p")
 ```
 
-Como as variáveis explicativas são todas quantitativas, pode-se criar gráficos de dispersão do preço de venda do imóvel, em relação a cada covariável. Na Figura \ref{fig:dispersao}, temos os gráficos de dispersão para cada covariável. A partir de cada um deles, é possível perceber que a relação é positiva entre a variável resposta e as variáveis explicativas imposto, área do terreno(area_ter) e área construída (area_cons). Já para a variável idade, a relação não é clara.
+Como as variáveis explicativas são todas quantitativas, pode-se criar gráficos de dispersão do preço de venda do imóvel, em relação a cada covariável (Figura \ref{fig:dispersao}). A partir de cada um deles, é possível perceber que a relação é positiva entre a variável resposta e as variáveis explicativas imposto, área do terreno(area_ter) e área construída (area_cons). Já para a variável idade, a relação não é clara.
 
 
 ```{r, fig.cap="\\label{fig:cor}"}
+#Gráfico da matriz de correlação das covariáveis área construída (are_cons), área do terreno (area_ter), idade e imposto. Quanto mais vermelho, mais positiva a correlação; quanto mais azul, mais negativa.
 GGally::ggcorr(df)
 ```
 
@@ -92,7 +94,7 @@ Inicialmente, o modelo considerado para este estudo será o Modelo 1: $Y_i = \be
 
 A Tabela \ref{tab:modelo1} apresenta os resultados do ajuste do Modelo 1: termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
 
-```{r}
+```{r, eval=FALSE}
 modelo_simples <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(preco ~ imposto + area_ter + area_cons + idade)
 
@@ -101,39 +103,83 @@ tidy(modelo_simples, conf.int = TRUE) %>%
   knitr::kable(caption = "", label = "tab:modelo1")
 ```
 
-Como esperado, a idade do imóvel não impacta no preço do imóvel, visto que seu p-valor (X) para o teste que testa $H_0: \beta_4=0$ \textit{vs} $H_1: \beta_4\ne0$ não foi significativo (menor que X). O p-valor (X) para o teste que testa $H_0: \beta_2=0$ \textit{vs} $H_1: \beta_2\ne0$ não foi significativo (menor que X), contrário ao esperado, assim, a área do terreno não foi relevante para explicar o preço nesse modelo. Isso pode ser devido à alta correlação dessa variável com as outras, mas ela pode vir a ser relevante no modelo ao se remover o termo associado à idade.
+\begin{table}[h]
+\centering
+\caption{Resultados do Modelo 1.}
+\label{tab:modelo1}
+\begin{tabular}{lcccc}
+\hline
+Termo     & Estimativa & EP    & p-valor          & IC(95\%)           \\ \hline
+$\beta_0$ & 38,50     & 0,785 & \textless{}0,001 & {[}36,87; 40,13{]} \\
+$\beta_1$ & 5,99      & 1,594 & 0,001            & {[}2,69; 9,29{]}   \\
+$\beta_2$ & 0,56      & 1,218 & 0,651            & {[}-1,97; 3,08{]}  \\
+$\beta_3$ & 7,80      & 1,623 & \textless{}0,001 & {[}4,44; 11,17{]}  \\
+$\beta_4$ & -0,61     & 0,931 & 0,516            & {[}-2,55; 1,32{]}  \\ \hline
+\end{tabular}
+\end{table}
 
-Por isso, será ajustado um novo modelo (Modelo 2), que remove o termo associado à idade ($\beta_4$): $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_2 x_2^{*} + \beta_3 x_3^{*} + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 1). A Tabela \ref{tab:modelo2} apresenta os resultados do ajuste desse modelo. Como no Modelo 1, a área do terreno também não contribui significativamente no preço dentro deste modelo, visto que seu p-valor foi marginal e o intervalo de confiança conteve o zero.
+Como esperado, a idade do imóvel não impacta no preço do imóvel, visto que seu p-valor (0,516) para o teste que testa $H_0: \beta_4=0$ \textit{vs} $H_1: \beta_4\ne0$ não foi significativo (menor que 0,05). O p-valor (0,651) para o teste que testa $H_0: \beta_2=0$ \textit{vs} $H_1: \beta_2\ne0$ não foi significativo (menor que 0,05), contrário ao esperado. Assim, a área do terreno não foi relevante para explicar o preço nesse modelo. Isso pode ser devido à alta correlação dessa variável com as outras.
 
-```{r}
+Por isso, será ajustado um novo modelo (Modelo 2), que remove o termo associado à área do terreno ($\beta_2$), cujo termo apresentou maior p-valor: $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_3 x_3^{*} + \beta_4 x_4^{*} + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 1). A Tabela \ref{tab:modelo2} apresenta os resultados do ajuste desse modelo. Como no Modelo 1, a área do terreno também não contribui significativamente no preço dentro deste modelo, visto que seu p-valor foi marginal e o intervalo de confiança conteve o zero.
+
+```{r, eval=FALSE}
 modelo_reduzido <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)) %$% 
-  lm(preco ~ imposto + area_ter + area_cons)
+  lm(preco ~ imposto + area_cons + idade)
 
 tidy(modelo_reduzido, conf.int = TRUE) %>% 
   select(-statistic) %>% 
   knitr::kable(caption = "", label = "tab:modelo2")
 ```
 
-Isso motiva o ajuste de um terceiro modelo (Modelo 3), mais reduzido: $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_3 x_3^{*} + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, que remove o termo da área do terreno ($\beta_2$). A Tabela \ref{tab:modelo3} apresenta os resultados do ajuste desse modelo. Como todos os parâmetros foram significativos (p-valores maiors que 0,05), não será feita outra redução no modelo, restando apensa verificar a qualidade do ajuste do modelo. Os coeficientes associados ao imposto e à área construída são próximos: há interseção entre seus intervalos de confiança, o que leva à conclusão de que as duas variáveis têm impacto parecido no preço de um imóvel.
+\begin{table}[h]
+\centering
+\caption{Resultados do Modelo 2.}
+\label{tab:modelo2}
+\begin{tabular}{lcccc}
+\hline
+Termo     & Estimativa & EP    & p-valor          & IC(95\%)           \\ \hline
+$\beta_0$ & 38,50      & 0,771 & \textless{}0,001 & {[}36,91; 40,09{]} \\
+$\beta_1$ & 6,08       & 1,553 & 0,001            & {[}2,87; 9,30{]}   \\
+$\beta_3$ & 8,09       & 1,466 & \textless{}0,001 & {[}5,06; 11,13{]}  \\
+$\beta_4$ & -0,74      & 0,875 & 0,406            & {[}-2,55; 1,07{]} 
+\end{tabular}
+\end{table}
+
+Isso motiva o ajuste de um terceiro modelo (Modelo 3), mais reduzido: $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_3 x_3^{*} + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, que remove o termo da idade do imóvel ($\beta_4$). A Tabela \ref{tab:modelo3} apresenta os resultados do ajuste desse modelo. Como todos os parâmetros foram significativos (p-valores maiors que 0,05), não será feita outra redução no modelo, restando apensa verificar a qualidade do ajuste do modelo. Os coeficientes associados ao imposto e à área construída são próximos: há interseção entre seus intervalos de confiança, o que leva à conclusão de que as duas variáveis têm impacto parecido no preço de um imóvel.
 
 ```{r}
 modelo_reduzido <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(preco ~ imposto + area_cons)
 
-tidy(modelo_reduzido, conf.int = TRUE) %>% 
-  select(-statistic) %>% 
-  knitr::kable(caption = "", label = "tab:modelo3")
+# tidy(modelo_reduzido, conf.int = TRUE) %>% 
+#   select(-statistic) %>% 
+#   knitr::kable(caption = "", label = "tab:modelo3")
 ```
+
+\begin{table}[h]
+\centering
+\caption{Resultados do Modelo 3.}
+\label{tab:modelo3}
+\begin{tabular}{lcccc}
+\hline
+Termo     & Estimativa & EP    & p-valor          & IC(95\%)           \\ \hline
+$\beta_0$ & 38,50      & 0,776 & \textless{}0,001 & {[}36,92; 40,08{]} \\
+$\beta_1$ & 6,62       & 1,409 & \textless{}0,001 & {[}3,71; 9,53{]}   \\
+$\beta_2$ & 7,78       & 1,409 & \textless{}0,001 & {[}4,87; 10,69{]} 
+\end{tabular}
+\end{table}
 
 A Figura \ref{fig:pred} apresenta o gráfico de predição do Modelo 2 para o preço, com intervalo de confiança para as predições a 95\% (banda ao redor da reta). Ela indica que os dados são bem descritos por uma reta, uma vez que todos os pontos estão dentro do intervalo de confiança para as predições e acompanham bem a reta.
 
 A Figura \ref{fig:resid} apresenta 4 gráficos: o primeiro sugere adequada a suposição de homocedasticidade; o segundo não sugere qualquer indício de dependência; o terceiro tem pouca interpretabilidade devido ao número pequeno de observações; finalmente, o quarto gráfico sugere adequada a suposição de normalidade para os resíduos, já que eles acompanham bem a reta e estão todos dentro da banda de confiança. Portanto, o modelo foi bem ajustado e as inferências feitas a partir dele são válidas.
 
 ```{r, fig.cap="\\label{fig:pred}"}
+#Gráfico da predição \textit{versus} preço observado. A reta é a reta ajustado pelo Modelo 3. A banda ao redor da reta é o intervalo de confiança para as predições a 95\%.
 plot_prediction(modelo_reduzido, df$preco, "preço")
 ```
 
 ```{r, fig.cap="\\label{fig:resid}"}
+#Análise dos resíduos (studentizados) do Modelo 3.
 plot_residuals(modelo_reduzido, bins = 6)
 ```
 
