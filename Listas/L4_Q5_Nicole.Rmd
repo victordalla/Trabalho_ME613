@@ -1,8 +1,13 @@
---- 
-title: "Questão 5 da lista 4"
+---
 output: 
   pdf_document:
     fig_crop: no
+fontsize: 10pt
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
 header-includes:
   - \usepackage[brazil, english, portuguese]{babel}
   - \usepackage[utf8]{inputenc}
@@ -10,6 +15,7 @@ header-includes:
   - \usepackage[fixlanguage]{babelbib}
   - \usepackage{times}
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE, 
@@ -26,19 +32,18 @@ options(
 ```
 
 ```{r lib}
+# library(aod)
 library(dplyr)
 library(ggplot2)
-library(forcats)
-library(magrittr)
-library(broom)
-library(xtable)
-library(knitr)
-source("plot_functions.R")
-source("comparacao_de_modelo.R")
 ```
 
 
 ## Questão 5
+
+### Introdução
+
+Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nela, há três suposições: indepedência das observações, distribuição normal da resposta e homocedasticidade (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de valores da resposta segundo alguns critérios 100 vezes, com três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=,5$ e covariável $x$ fixa gerada de $U(5, 20)$.
+
 
 ```{r}
 # tamanhos amostrais
@@ -49,13 +54,36 @@ r <- 100
 b0 <- 1
 b1 <- 1.5
 #sigma2 <- 4
+mu <- 0
 sigma <- 2
+nu <- 6
+```
+
+```{r}
+cobertura_empirica <- function(resultados) {
+  group_by(resultados, n) %>% 
+    summarise(b0.cobertura = mean(b0 >= b0.lo & b0 <= b0.hi), b1.cobertura = mean(b1 >= b1.lo & b1 <= b1.hi))
+}
+
+plot_intervalos <- function(resultados) {
+  tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
+    ggplot(aes(repl)) + 
+    geom_hline(yintercept = b0, col = "cadetblue", linetype = "dashed") +
+    geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = 0.5) + 
+    facet_grid(par~n) + theme_classic()
+}
+
+plot_histograma <- function(resultados) {
+  tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
+    ggplot(aes(est)) + geom_histogram() + 
+    facet_grid(n~par, scales = "free") + theme_classic()
+  }
 ```
 
 
 ### Item a)
 
-$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$.
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$ e $\sigma=2$.
 
 ```{r}
 resultados <- tibble(
@@ -70,98 +98,146 @@ for (n in ns) {
   
   for (repl in 1:r) {
     i <- i + 1
-    y <- b0 + b1*(x-xbar) + rnorm(n, 0, sigma)
+    y <- b0 + b1*(x-xbar) + rnorm(n, mu, sigma)
     fit <- lm(y ~ I(x-xbar))
     # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
+      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
       )
   }
 }
 
-group_by(resultados, n) %>% 
-  summarise(b0.cobertura = mean(b0 >= b0.lo & b0 <= b0.hi), b1.cobertura = mean(b1 >= b1.lo & b1 <= b1.hi))
+cobertura_empirica(resultados)
 ```
 
 ```{r}
-# ggarange não é a melhor solução :(
-p <- ggplot(resultados, aes(repl)) + facet_wrap(~n) + theme_classic()
-ggpubr::ggarrange(
-  nrow = 2, labels = c("b0", "b1"), 
-  p + geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = 0.3) + 
-  geom_hline(yintercept = b0, col = "cadetblue"), 
-  p + geom_ribbon(aes(ymin=b1.lo, ymax=b1.hi), fill = "coral", alpha = 0.3) + 
-  geom_hline(yintercept = b1, col = "cadetblue")
-)
+#plot_intervalos(resultados)
 ```
 
 ```{r}
-ggpubr::ggarrange(
-  nrow = 2, labels = c("b0", "b1"), 
-  ggplot(resultados, aes(b0)) + geom_histogram() + facet_wrap(~n) + theme_classic(), 
-  ggplot(resultados, aes(b1)) + geom_histogram() + facet_wrap(~n) + theme_classic()
-)
+plot_histograma(resultados)
 ```
 
 
+### Item b)
+
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi_{i} \stackrel{ind.}{\sim} N\left(0, \sigma^{2} x_i \right)$ e $\sigma=2$.
 
 ```{r}
-set.seed(204186)
-n <- 50 # tamanho da amostra 
-# numero de replicas da simulação
-# ->conjunto de valores de Y para um mesmo conjunto de x
-r <- 100
-b0 <- 1
-b1 <- 1.5
-sigma2 <- 4
-
-x <- runif(n, 5, 20)
-y <- matrix(data= NA, nrow = n, ncol = r) #cada coluna é uma amostra
-
-b1_hat <- matrix(data= NA, nrow = r, ncol = 4)
-b0_hat <- matrix(data= NA, nrow = r, ncol = 4)
-sigma2_hat <- c()
-
-##sum(y[,i]*(x- mean(x)))/ sum((x - mean(x))^2)
-
-for (i in 1:r) {
-
-  y[,i] <- b0 + b1*(x - mean(x)) + rnorm(n, mean = 0, sd= sqrt(sigma2))
-  model <- lm(y[,i] ~ I(x - mean(x)))
-  stats <- tidy(model, conf.int = TRUE)
+resultados <- tibble(
+  # tibble recicla, então todas as colunas são de mesmo tamanho mas assim fica mais legível :)
+  n = numeric(length(ns) * r), repl = 0,  b0.est = 0, b1.est = 0, 
+  b0.lo = 0, b0.hi = 0, b1.lo = 0, b1.hi = 0, pvalor = 0
+  )
+i <- 0
+for (n in ns) {
+  x <- runif(n, 5, 20)
+  xbar <- mean(x)
   
-  b1_hat[i, 1] <- stats$estimate[2]
-  b1_hat[i, 2] <- stats$p.value[2] #testa de b1 = 0
-  b1_hat[i, 3] <- stats$conf.low[2]
-  b1_hat[i, 4] <- stats$conf.high[2]
-  
-  b0_hat[i, 1] <- stats$estimate[1]
-  b0_hat[i, 2] <- stats$p.value[1]
-  b0_hat[i, 3] <- stats$conf.low[1]
-  b0_hat[i, 4] <- stats$conf.high[1]
-  
-  sigma2_hat[i] <- sum((y[,i] - b0_hat[,1] - b1_hat[,1]*(x - mean(x)))^2)/n-2
+  for (repl in 1:r) {
+    i <- i + 1
+    y <- b0 + b1*(x-xbar) + rnorm(n, mu, x*sigma)
+    fit <- lm(y ~ I(x-xbar))
+    # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
+    # IMPORTANTE: verificar wald.test
+    resultados[i, ] <- c(
+      n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
+      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
+      )
+  }
 }
 
-b0_hat <- as.data.frame(b0_hat)
-colnames(b0_hat) <- c("estimativa", "p-valor", "ic.low", "ic.high")
-
-teste <- data.frame(Variable = rownames(summary(model)$coef),
-                    coefficient = summary(model)$coef[,1],
-                    SE= summary(model)$coef[,2])
-interval <- qnorm((1-0.95)/2)
-
-ggplot(b0_hat, aes(x = 1:r, y = estimativa)) +
-  geom_point(size = 1) +
-  geom_errorbar(aes(ymax = ic.high, ymin = ic.low))+
-  hline
-
-hist(sigma2_hat)
-
+cobertura_empirica(resultados)
 ```
 
+```{r}
+#plot_intervalos(resultados)
+```
 
+```{r}
+plot_histograma(resultados)
+```
 
+### Item c)
 
+$\xi_{i} \stackrel{i . i . d .}{\sim} t_{(\nu)}\left(\sigma^{2}\right)$, onde  $\nu=6$ e  $\mathcal{V}(\xi)=\sigma^{2} \frac{\nu}{\nu-2}$.
+
+```{r}
+resultados <- tibble(
+  # tibble recicla, então todas as colunas são de mesmo tamanho mas assim fica mais legível :)
+  n = numeric(length(ns) * r), repl = 0,  b0.est = 0, b1.est = 0, 
+  b0.lo = 0, b0.hi = 0, b1.lo = 0, b1.hi = 0, pvalor = 0
+  )
+i <- 0
+for (n in ns) {
+  x <- runif(n, 5, 20)
+  xbar <- mean(x)
+  
+  for (repl in 1:r) {
+    i <- i + 1
+    # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.1/topics/dist.Student.t
+    # https://en.wikipedia.org/wiki/Student's_t-distribution#Generalized_Student's_t-distribution
+    y <- b0 + b1*(x-xbar) + LaplacesDemon::rst(n, mu, sigma, nu)
+    fit <- lm(y ~ I(x-xbar))
+    # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
+    # IMPORTANTE: verificar wald.test
+    resultados[i, ] <- c(
+      n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
+      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
+      )
+  }
+}
+
+cobertura_empirica(resultados)
+```
+
+```{r}
+#plot_intervalos(resultados)
+```
+
+```{r}
+plot_histograma(resultados)
+```
+
+### Item d)
+
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi \stackrel{ind.}{\sim} N_n\left(\mathbf{0}, \boldsymbol{\Sigma}\right)$ e a diagonal de $\boldsymbol{\Sigma}$ vale 4 (variância de cada erro) e todos os outros elementos têm valor 0,90 ($\operatorname{Cor}\left(\xi_{i}, \xi_{j}\right) = 0,90, \ j \neq i$).
+
+```{r}
+resultados <- tibble(
+  # tibble recicla, então todas as colunas são de mesmo tamanho mas assim fica mais legível :)
+  n = numeric(length(ns) * r), repl = 0,  b0.est = 0, b1.est = 0, 
+  b0.lo = 0, b0.hi = 0, b1.lo = 0, b1.hi = 0, pvalor = 0
+  )
+i <- 0
+for (n in ns) {
+  x <- runif(n, 5, 20)
+  xbar <- mean(x)
+  
+  for (repl in 1:r) {
+    i <- i + 1
+    m <- matrix(data=0.9, nrow=n, ncol=n)
+    diag(m) <- sigma^2
+    y <- b0 + b1*(x-xbar) + c(mvtnorm::rmvnorm(1, rep(mu, nrow(m)), m))
+    fit <- lm(y ~ I(x-xbar))
+    # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
+    # IMPORTANTE: verificar wald.test
+    resultados[i, ] <- c(
+      n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
+      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
+      )
+  }
+}
+
+cobertura_empirica(resultados)
+```
+
+```{r}
+#plot_intervalos(resultados)
+```
+
+```{r}
+plot_histograma(resultados)
+```
