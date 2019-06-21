@@ -38,7 +38,7 @@ library(ggplot2)
 ```
 
 
-## Questão 5
+## Questão 8
 
 ### Introdução
 
