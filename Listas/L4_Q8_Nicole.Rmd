@@ -28,6 +28,7 @@ library(magrittr)
 library(broom)
 library(xtable)
 library(knitr)
+library(gridExtra)
 source("plot_functions.R")
 source("comparacao_de_modelo.R")
 ```
@@ -83,15 +84,6 @@ dados %>%
 
 ## Análise inferencial
 
-<!--
-- especificar o modelo
-- análise(s) de resíduo(s)
-- hipóteses de interesse (O NÍVEL DE SIGNIFICÂNCIA DEVE SER ESPECIFICADO NO RELATÓRIO)
--análise de multicolinearidade
-- modelagem a heterocedasticidade
-- gráficos e comentários
-- deverão   ser   usadas   as metodologias constantes na questão
-- caso o modelo usado não se adeque bem   aos   dados,   comentários   a   respeito   deverão   ser   feitos,   mencionando   que   outras metodologias devem ser utilizadas (não, necessariamente, precisa ser dito quais) -->
 Por meio da análise descritiva, notamos indícios de aumento do salário com o aumento da posição e com o aumento da experiência para ambos os sexos, sugerindo inicialmente um modelo linear do tipo
 
 $$Y_{i} = \beta_{0} + \beta_{1}x_i+\beta_2 (x_{2 i} - \bar{x}_2) + \beta_{3 } (x_{3 i} - \bar{x}_3)  + \epsilon_{i }, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$$ 
@@ -114,20 +106,10 @@ cujos $\epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$ e os  parâmetros $\be
 
 - $\beta_4$ representa a variação esperada no salário quando o sexo é masculino, a experiência varia em uma unidade e as outras variáveis se mantém constante, ou seja, representa a interação entre o sexo e os anos de experiência;
 - $\beta_5$ representa a variação esperada no salário quando o sexo é masculino, a posição na empresa varia em uma unidade e as outras variáveis se mantém constante, ou seja, representa a interação entre o sexo e o cargo ocupado na empresa;
-- $\beta_5$ representa a variação esperada no salário quando os anos de experiência e a posição na empresa varia em uma unidade e as outras variáveis se mantém constante, ou seja, representa a interação entre o cargo e os anos de experiênca.
+- $\beta_6$ representa a variação esperada no salário quando os anos de experiência e a posição na empresa varia em uma unidade e as outras variáveis se mantém constante, ou seja, representa a interação entre o cargo e os anos de experiênca.
 
 
 #Resultados
-
-
-```{r, res1, fig.cap="Resíduos do Modelo 1\\label{fig:res1}"}
-modelo1 <- dados %$%
-  lm(salario_anual ~ sexo + I(experiencia - mean(experiencia)) + I(posicao_empresa - mean(posicao_empresa)))
-
-plot_residuals(modelo1)
-```
-
-A Figura \ref{fig:res1} apresenta a análise do resíduo do Modelo 1. Os gráficos do resíduo versus índice e resíduo versus valores preditos indicam que as suposições de homocedasticidade e independência dos erros é plausível para este problema. Já o histograma e o gráfico de envelope sugerem um mal ajuste do modelo devido ao comportamento sistemático. Além disso, o gráfico de envelope indica caudas pesadas nas extremidades, comportamento que não era esperado de acordo com a suposição de normalidade e alguns pontos não estão dentro da banda de confiança. Apesar disso, iremos apresentar as estimativas pontuais e intervalares do modelo.
 
 A Tabela \ref{tab:modelo1} apresenta os termos do modelo (Termo), estimativas pontuais (Estimativa), erro padrão (Erro Padrão), p-valores, intervalos de confiança (conf.low e conf.high). Por meio da Tabela pode-se notar que na presença de experiência e posição, as mulheres ganham em média mais do que os homens pois o valor de $\beta_1$ foi negativo. Quando essas variáveis são ignoradas, ocorre o contrário, como foi visto na análise descritiva. 
 
@@ -135,6 +117,8 @@ Além disso, todas as variáveis foram significativas para explicar a variação
 
 \begin{table}[ht]
 \centering
+\caption{Estimativas modelo 1}
+\label{modelo1}
 \begin{tabular}{rrrrrr}
   \hline
 Termo & Estimativa & Erro Padrão & p-valor & conf.low & conf.high \\ 
@@ -145,23 +129,21 @@ $\beta_2$ & -0,47 & 0,11 & 0,00 & -0,70 & -0,25 \\
 $\beta_3$ & 6,71 & 0,31 & 0,00 & 6,09 & 7,33 \\ 
    \hline
 \end{tabular}
-\label{modelo1}
 \end{table}
 
 ```{r, modelo1, fig.cap="Tabela com as estimativas\\label{tab:summary1}"}
+
+modelo1 <- dados %$%
+  lm(salario_anual ~ sexo + I(experiencia - mean(experiencia)) + I(posicao_empresa - mean(posicao_empresa)))
 #tidy(modelo1, conf.int = TRUE) %>% 
 #  select(-statistic) %>%
 #  xtable()
 ```
 
-A Tabela \ref{tab:modelo2} apresenta os resultados do ajuste do Modelo 2. Pode-se notar que o parâmetro que representa a interação entre as variáveis sexo e anos de experiência ($\beta_4$) não foi significativo para explicar a variação do salário visto que seu p-valor (0.25) para o teste que testa $H0 : \beta_4 = 0$ vs $H1 : \beta_4 = 0$ não foi significativo, isto é, não foi menor que $\alpha = 0.05$. A interação entre sexo e posição na empresa também não foi significativa já que o p-valor (0,13) foi maior que o nível de significância.
-
-Por isso, será ajustado um novo modelo (Modelo 3) que remove o termo associado à interação entre o sexo e a experiência ($\beta_4$)  dado por $Y_{i} = \beta_{0} + \beta_{1}x_i+\beta_2 (x_{2 i} - \bar{x}_2) + \beta_{3 } (x_{3 i} - \bar{x}_3) + \beta_5(x_{1i}(x_{3 i} - \bar{x}_3) )+ \beta_6((x_{2 i} - \bar{x}_2)(x_{3 i} - \bar{x}_3) ) + \epsilon_{i }, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$  cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 2). A Tabela \ref{tab:modelo3} apresenta os resultados do ajuste desse modelo. 
-
-Assim como no Modelo 2, a interação entre as variáveis sexo e posição na empresa não foi significativa dentro do Modelo 3, visto que seu p-valor foi maior que $\alpha = 0,05$ e o intervalo de confiança conteve o zero. Este comportamento já era esperado conforme aponta a análise descritiva. Logo, iremos ajustar um último modelo (Modelo 4) que retira o termo $\beta_5$ que representa a interação entre o sexo e a posição na empresa. O Modelo 4 é definido como $Y_{i} = \beta_{0} + \beta_{1}x_i+\beta_2 (x_{2 i} - \bar{x}_2) + \beta_{3 } (x_{3 i} - \bar{x}_3) +  \beta_6((x_{2 i} - \bar{x}_2)(x_{3 i} - \bar{x}_3) ) + \epsilon_{i }, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$ cujos parâmetros possuem a mesma interpretação definida para o Modelo 2. A Tabela \ref{tab:modelo4} traz os resultados do ajuste desse modelo.
-
 \begin{table}[ht]
 \centering
+\caption{Estimativas modelo 2}
+\label{modelo2}
 \begin{tabular}{rrrrrr}
   \hline
 Termo & Estimativa & Erro Padrão & p-valor & conf.low & conf.high \\
@@ -175,8 +157,15 @@ $\beta_5$ & 1,03 & 0,68 & 0,13 & -0,31 & 2,36 \\
 $\beta_6$ & -0,15 & 0,05 & 0,00 & -0,26 & -0,05 \\ 
    \hline
 \end{tabular}
-\label{modelo2}
 \end{table}
+
+
+A Tabela \ref{tab:modelo2} apresenta os resultados do ajuste do Modelo 2. Pode-se notar que o parâmetro que representa a interação entre as variáveis sexo e anos de experiência ($\beta_4$) não foi significativo para explicar a variação do salário visto que seu p-valor (0.25) para o teste que testa $H0 : \beta_4 = 0$ vs $H1 : \beta_4 = 0$ não foi significativo, isto é, não foi menor que $\alpha = 0.05$. A interação entre sexo e posição na empresa também não foi significativa já que o p-valor (0,13) foi maior que o nível de significância.
+
+Por isso, será ajustado um novo modelo (Modelo 3) que remove o termo associado à interação entre o sexo e a experiência ($\beta_4$)  dado por $Y_{i} = \beta_{0} + \beta_{1}x_i+\beta_2 (x_{2 i} - \bar{x}_2) + \beta_{3 } (x_{3 i} - \bar{x}_3) + \beta_5(x_{1i}(x_{3 i} - \bar{x}_3) )+ \beta_6((x_{2 i} - \bar{x}_2)(x_{3 i} - \bar{x}_3) ) + \epsilon_{i }, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$  cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 2). A Tabela \ref{tab:modelo3} apresenta os resultados do ajuste desse modelo. 
+
+Assim como no Modelo 2, a interação entre as variáveis sexo e posição na empresa não foi significativa dentro do Modelo 3, visto que seu p-valor foi maior que $\alpha = 0,05$ e o intervalo de confiança conteve o zero. Este comportamento já era esperado conforme aponta a análise descritiva. Logo, iremos ajustar um último modelo (Modelo 4) que retira o termo $\beta_5$ que representa a interação entre o sexo e a posição na empresa. O Modelo 4 é definido como $Y_{i} = \beta_{0} + \beta_{1}x_i+\beta_2 (x_{2 i} - \bar{x}_2) + \beta_{3 } (x_{3 i} - \bar{x}_3) +  \beta_6((x_{2 i} - \bar{x}_2)(x_{3 i} - \bar{x}_3) ) + \epsilon_{i }, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2),$ cujos parâmetros possuem a mesma interpretação definida para o Modelo 2. A Tabela \ref{tab:modelo4} traz os resultados do ajuste desse modelo.
+
 
 
 ```{r modelo 2}
@@ -191,7 +180,10 @@ modelo2 <- dados %$%
 #  xtable()
 ```
 
+\begin{table}[ht]
 \centering
+\caption{Estimativas modelo 3}
+\label{modelo3}
 \begin{tabular}{rrrrrr}
   \hline
 Termo & Estimativa & Erro Padrão & p-valor & conf.low & conf.high \\
@@ -204,7 +196,6 @@ $\beta_5$ & 0,69 & 0,61 & 0,26 & -0,52 & 1,91 \\
 $\beta_6$ & -0,16 & 0,05 & 0,00 & -0,26 & -0,05 \\ 
    \hline
 \end{tabular}
-\label{modelo3}
 \end{table}
 
 ```{r modelo3}
@@ -221,6 +212,8 @@ modelo3 <- dados %$%
 
 \begin{table}[ht]
 \centering
+\caption{Estimativas modelo 4}
+\label{modelo4}
 \begin{tabular}{rrrrrr}
   \hline
  term & estimate & std.error & p.value & conf.low & conf.high \\ 
@@ -229,10 +222,9 @@ $\beta_0$ & 145,43 & 0,93 & 0,00 & 143,61 & 147,26 \\
 $\beta_1$ & -2,81 & 1,09 & 0,01 & -4,95 & -0,67 \\ 
 $\beta_2$ & -0,35 & 0,12 & 0,00 & -0,58 & -0,11 \\ 
 $\beta_3$ & 6,68 & 0,31 & 0,00 & 6,07 & 7,29 \\ 
-$\beta_5$ & -0,13 & 0,05 & 0,01 & -0,23 & -0,04 \\ 
+$\beta_6$ & -0,13 & 0,05 & 0,01 & -0,23 & -0,04 \\ 
    \hline
 \end{tabular}
-\label{modelo4}
 \end{table}
 
 
@@ -247,7 +239,81 @@ modelo4 <- dados %$%
 #  xtable()
 ```
 
-De acordo com os resultados apresentado na Tabela 
+De acordo com os resultados do ajuste do Modelo 4 apresentado na Tabela \ref{tab:modelo4}, todas as variáveis foram significativas para explicar o comportamento do salário dos empresários em função do sexo, anos de experiência e posição na empresa. Dessa forma, a única interação de primeira ordem que contribui para o modelo é a interação entre as variáveis experiência e cargo. Como $\beta_6$ e $\beta_2$ foram negativos, as executivas com posição alta e muita experiência tendem a ganhar menos do que executivas com posição alta e menos experiência. Isso quer dizer que aquelas executivas que permaneceram menos tempo no cargo tendem a ganhar mais do que aquelas que ficarem mais tempo no cargo. O mesmo resultado acontece para os homens. Tal comportamento era esperado como mostra o gráfico da Figura \ref{fig:completo} na análise descritiva. Assim, iremos comparar o Modelo 4 com o Modelo 1 para verificar o melhor ajuste para essa classe de modelos. 
+
+A Figura \ref{fig:res1} apresenta a análise do resíduo do Modelo 1 e a Figura \ref{ig:res4} referente ao Modelo 4. Os gráficos do resíduo versus índice e resíduo versus valores preditos indicam que as suposições de homocedasticidade e independência dos erros é plausível para ambos ajustes. Já o histograma e o gráfico de envelope sugerem um mal ajuste do modelo devido ao comportamento sistemático dos erros. Além disso, o gráfico de envelope indica caudas pesadas nas extremidades, comportamento que não era esperado de acordo com a suposição de normalidade e alguns pontos não estão dentro da banda de confiança, tanto para o Modelo 1 quanto para o Modelo 4.
+
+A Figura \ref{fig:pred} apresenta os gráficos dos valores obsevados pelos valores preditos para os modelos em questão. Pode-se notar uma pequena melhora no Modelo 4 já que a quantidade de pontos fora da banda de confiança é menor do que no Modelo 1. Os resultados das estatísticas de comparação de modelos presentes na Tabela \ref{tab:compa} favorece, novamente, ao Modelo 4 já que os valores são reduzidos de um modelo para o outro. Por fim, a Tabela \ref{tab:r2} apresenta os valores de $R^2$ e $\bar{R ^2}$.
+
+\begin{table}[ht]
+\centering
+\caption{Comparação entre os modelos} 
+\label{compa}
+\begin{tabular}{rrrrrrr}
+  \hline
+ & AIC & BIC & AICc & SABIC & HQCIC & -2log.lik \\ 
+  \hline
+Modelo 1 & 1471,64 & 1488,61 & 1471,83 & 1470,54 & 1475,13 & 1461,64 \\ 
+Modelo 4 & 1466,01 & 1486,37 & 1466,29 & 1465,13 & 1470,86 & 1454,01 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\caption{R2 ajustado e R2} 
+\label{r2}
+\begin{tabular}{rlrr}
+  \hline
+& $\bar{R ^2}$ & $R^2$ \\ 
+  \hline
+Modelo 1 & 0,71 & 0,71 \\ 
+Modelo 4 & 0,72 & 0,72 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+# Conclusão
+
+Foram ajustados diversos modelos lineares para avaliar o impacto das variáveis no salário de executivos. Os modelos 1 e 4 foram os modelos que se ajustaram melhor aos dados. Ambos resultaram em um ajuste razoável como apresentado na análise dos resíduos. Porém, Vale ressaltar que os resultados apresentados favorecem o modelo que leva em consideração a interação entre as variáveis experiência e posição na empresa (Modelo 4). 
+
+Nesse estudo, notamos a importância de estudar a interação na interpretação dos resultados já que, considerando apenas a variável sexo, o os homens ganham em média, mais do que as mulheres. Entretanto, ao adicionar essas variáveis ao modelo ocorre o contrário. Além disso, executivos com posição alta
+e muita experiência tendem a ganhar menos do que executivos com posição alta e menos experiência para ambos os sexos.
+
+
+```{r, res1,fig.height=5, fig.width=7, fig.cap="Resíduos do Modelo 1\\label{fig:res1}, "}
+plot_residuals(modelo1)
+```
+
+```{r, res4,fig.height=5, fig.width=7, fig.cap="Resíduos do Modelo 4\\label{fig:res4}"}
+plot_residuals(modelo4)
+```
+
+```{r predict, fig.cap="Valores preditos versus observados\\label{fig:pred}", fig.height= 3, fig.width= 7}
+library(gridExtra)
+
+r1 <- plot_prediction(modelo1, response = dados$salario_anual, response_name = "Salário")
+r4 <- plot_prediction(modelo4, response = dados$salario_anual, response_name = "Salário")
+
+grid.arrange(arrangeGrob(r1, top = "Modelo1"),arrangeGrob(r4, top = "Modelo4"), ncol = 2)
+
+
+```
+
+```{r compa_estat}
+c1 <- t(calc.estat.mod.comp.MRNLH(modelo1))
+c4 <- t(calc.estat.mod.comp.MRNLH(modelo4))
+#tidy(comparacao <- rbind(c1, c4)) %>%
+#  xtable(caption = "Comparação entre os modelos")
+```
+
+```{r r2}
+r1 <- c(summary(modelo1)$r.squared, summary(modelo1)$adj.r.squared)
+r4 <- c(summary(modelo4)$r.squared, summary(modelo4)$adj.r.squared)
+#tidy(r <- rbind(r1, r4)) %>%
+#  xtable(caption = "R2 e R2 ajustado")
+
+```
 
 ```{r}
 #ggplot(dados, aes(x = experiencia, y = salario_anual)) +
