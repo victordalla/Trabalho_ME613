@@ -1,26 +1,38 @@
 --- 
-title: "Questão 5 da lista 4"
 output: 
   pdf_document:
     fig_crop: no
+fontsize: 10pt
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
 ---
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = FALSE, 
   message = FALSE,
   warning = FALSE,
-  tidy.opts = list(width.cutoff = 60),
-  tidy = TRUE
+  fig.align = "center", fig.height = 3, fig.width = 5
   )
 options(
   OutDec = ",", 
-  digits = 4,
+  digits = 3, 
   # knitr.table.format = "latex", 
   xtable.comment = FALSE
   )
 ```
 
 ```{r libs}
+library(minpack.lm)
 library(magrittr)
 library(ggplot2)
 library(knitr)
@@ -28,166 +40,121 @@ library(broom)
 source("plot_functions.R")
 ```
 
-
 ```{r}
 df <- read.table("../Dados/Ratkowsky.dat")
 colnames(df) <- c("idade", "peso")
 ```
 
-
 ```{r}
-plot(peso ~ idade, data = df)
+plot_nls_residuals <- function(model, binwidth = NULL, bins = NULL) {
+  # precisa de ggplot2, gridExtra, qqplotr
+  residuals <- data.frame(
+    residual = resid(model), 
+    fitted = fitted(model), 
+    index = 1:length(fitted(model))
+  )
+  
+  p <- ggplot2::ggplot(residuals) + 
+    ggplot2::labs(y = "resíduo") + ggplot2::theme_classic()
+  
+  gridExtra::grid.arrange(
+    nrow = 2, 
+    p + ggplot2::geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + 
+      ggplot2::labs(x = "índice"), 
+    p + ggplot2::geom_point(aes(x = fitted, y = residual), col = "gray30", alpha = 0.80) + 
+      ggplot2::labs(x = "predito"), 
+    p + ggplot2::geom_histogram(
+      aes(x = residual), fill = "gray30", col = "gray80",
+      binwidth = binwidth, bins = bins
+      ) + ggplot2::labs(x = "resíduo", y = ""), 
+    ggplot2::ggplot(residuals, aes(sample = residual)) + 
+      qqplotr::stat_qq_band(bandType = "pointwise") + 
+      qqplotr::stat_qq_line() + 
+      qqplotr::stat_qq_point(col = "gray20", alpha = 0.80) + 
+      ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic()
+  )
+}
 ```
 
+# Questão 9
 
-# Modelo Linear Simples
+## Introdução
 
-```{r}
-m1 <- lm(peso ~ idade, data = df)
-summary(m1)
+Os correspondem a uma amostra de 71 coelhos da espécia *Oryctolagus Cuniculuse*, onde foram registradas suas idade (em dias) e o peso (em mg) de sua lente ocular seca.
+
+Sendo do nosso interesse nesta análise, explicar o peso da lente em função da idade dos indivíduos.
+
+A notação utilizada será:
+  - $\mathbf Y$: a variável resposta, peso;
+  - $\mathbf x$: covariável, idade. 
+
+## Análise Descritiva
+
+Inicialmente avaliando a Fig. \ref{fig:explo} podemos ver que a relação entre as váriaveis não é linear e que a dispersão dos dados aumenta conforme os coelhos envelhecem, o que é esperado, uma vez que cada indivíduo se desenvolve de forma diferente, com o passar do tempo as diferenças no volume e massa dos seus orgãos vão aumentendo.
+
+```{r fig.cap="\\label{fig:explo}Peso da lente ocular dos coelhos em função da sua idade em dias."}
+df %>% ggplot(aes(idade, peso)) + geom_point() +
+  theme_bw()
 ```
 
-`r summary(m1) %>% tidy() %>% kable()`
+# Modelo Linear (no Parâmetros) 1
+
+Devido a estrutura não linear podemos iniciar nossa modelagem utilizando a regressão linear com polinômio de segundo grau, verificando se os dados seguem uma parábola.
+
+$$
+\mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_1 ^ 2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
+$$
 
 ```{r}
-termplot(m1, data = df, partial.resid = T, se = T)
+m1 <- lm(peso ~ poly(idade, 2, raw = T), data = df)
+
+m1 %>% tidy(conf.int = T) %>%
+  kable(caption = "\\label{tab:m1}")
 ```
 
-```{r}
+```{r fig.cap="\\label{fig:m1}Curva do modelo 1 ajustado."}
+df %>% ggplot(aes(idade, peso)) +
+  geom_point() + 
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = T), se = T) +
+  theme_bw()
+```
+
+```{r fig.cap="\\label{fig:resm1}Gráficos para diagnóstico dos resíduos do modelo 1"}
 plot_residuals(m1)
 ```
 
-# Modelo Polinomial de Grau 2
+
+Comentar sobre o p-valor significativo, citar as Figuras (Fig. \ref{fig:m1}, Fig. \ref{fig:resm1}) no texto, etc.
+Comentar que um dos pontos do modelo quadrático não ser adequado é devido a estrutura da parábola, que espera que os valores decrescam, o que não acontece com o peso das corneas em função da idade.
+
+# Modelo Não Linear 1
+
+Podemos buscar alguma função que se aproxime da estrutura dos dados, para isso tentarei ajustar o modelo:
+
+$$
+\mathbf Y = \beta_0 \log (\beta_1 + \beta_2 \mathbf x) + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
+$$
+
+Variaveis positivas, faz sentido usar o log, etc...
 
 ```{r}
-m2 <- lm(peso ~ poly(idade, 2, raw = T), data = df)
+m2 <- nlsLM(peso ~ beta0 * log(beta1 + beta2 * idade), start = c(beta0=1, beta1=1, beta2=1), data = df)
+```
+
+```{r}
 summary(m2)
 ```
-
-`r summary(m2) %>% tidy() %>% kable()`
-
-```{r}
-termplot(m2, data = df, partial.resid = T, se = T)
-```
-
-```{r}
-plot_residuals(m2)
+```{r fig.cap="\\label{fig:m2}Gráficos da curva do modelo 3"}
+df %>% ggplot(aes(idade, peso)) +
+  geom_point() +
+  geom_line(aes(idade, fitted(m2), col = "red")) +
+  theme_bw()
 ```
 
 
-# Modelo Polinomial de Grau 3
-
-```{r}
-m3 <- lm(peso ~ poly(idade, 3, raw = T), data = df)
-summary(m3)
-```
-
-`r summary(m3) %>% tidy() %>% kable()`
-
-```{r}
-termplot(m3, data = df, partial.resid = T, se = T)
-```
-
-```{r}
-plot_residuals(m3)
-```
-
-# Modelos Ponderados
-
-Faz sentido assumir que com o envelhecimento a variância da distribuição dos pesos dos orgãos aumente, uma vez que o desenvolvimento e os hábitos entre os indivíduo são diferentes (isso pode ser observado na primeira figura *adicionar Fig. 1*, os pesos inicialmente são muito similares).
-Desta forma, avaliamos modelar o ajuste ponderando os quadrados mínimos com $w_i = \frac{1}{\hat y_i^{2}}$, ao fazermos isso estamos supondo que a nossa média tem uma relação quadrática com a variância, $\mu = c \sigma^2$.
-
-```{r}
-wts <- 1/fitted(m3)^2
-m4 <- lm(peso ~ poly(idade, 3, raw = T), data = df, weights = wts)
-summary(m4)
-```
-
-`r summary(m4) %>% tidy() %>% kable()`
-
-```{r}
-termplot(m4, data = df, se = T, partial.resid = T)
-```
-
-```{r}
-plot_residuals(m4)
+```{r fig.cap="\\label{fig:resm2}Gráficos para diagnóstico dos resíduos do modelo 3"}
+plot_nls_residuals(m2)
 ```
 
 
-# Modelos Ponderados Adicionais
-
-Por curiosidade avaliamos os modelos anteriores utilizando a mesma métrica para ponderar os quadrados mínimos.
-
-```{r}
-wts <- 1/fitted(m2)^2
-m5 <- lm(peso ~ poly(idade, 2, raw = T), data = df, weights = wts)
-summary(m5)
-```
-
-`r summary(m5) %>% tidy() %>% kable()`
-
-```{r}
-termplot(m5, data = df, se = T, partial.resid = T)
-```
-
-```{r}
-plot_residuals(m5)
-```
-
-
-```{r}
-wts <- 1/fitted(m1)^2
-m6 <- lm(peso ~ idade, data = df, weights = wts)
-summary(m6)
-```
-
-`r summary(m6) %>% tidy() %>% kable()`
-
-
-```{r}
-termplot(m6, data = df, se = T, partial.resid = T)
-```
-
-```{r}
-plot_residuals(m6)
-```
-
-
-# Modelo Com Transformação de Variável
-
-```{r}
-m7 <- lm(peso ~ log(idade), data = df)
-summary(m7)
-```
-
-`r summary(m7) %>% tidy() %>% kable()`
-
-
-```{r}
-termplot(m7, data = df, se = T, partial.resid = T)
-```
-
-```{r}
-plot_residuals(m7)
-```
-
-
-### AIC
-
-`r AIC(m1, m2, m3, m4, m5, m6, m7) %>% kable()`
-
-### BIC
-
-`r BIC(m1, m2, m3, m4, m5, m6, m7) %>% kable()`
-
-### $R^2$
-
-```{r}
-rsq <- function(x) summary(x)$r.squared
-r2 <- data.frame(R2 = c(rsq(m1), rsq(m2), rsq(m3), rsq(m4), rsq(m5),
-                        rsq(m6), rsq(m7)))
-rownames(r2) <- c("m1", "m2", "m3", "m4", "m5", "m6", "m7")
-```
-
-`r r2 %>% kable()`
-
+Note que o residuo não é mais *studentizado*

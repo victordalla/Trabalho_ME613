@@ -38,9 +38,9 @@ library(ggplot2)
 ```
 
 
-## Questão 5
+# Questão 8
 
-### Introdução
+## Introdução
 
 Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nela, há três suposições: indepedência das observações, distribuição normal da resposta e homocedasticidade (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de valores da resposta segundo alguns critérios 100 vezes, com três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=,5$ e covariável $x$ fixa gerada de $U(5, 20)$.
 
@@ -70,18 +70,18 @@ plot_intervalos <- function(resultados) {
     ggplot(aes(repl)) + 
     geom_hline(yintercept = b0, col = "cadetblue", linetype = "dashed") +
     geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = 0.5) + 
-    facet_grid(par~n) + theme_classic()
+    facet_grid(par~n) + theme_bw()
 }
 
 plot_histograma <- function(resultados) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
     ggplot(aes(est)) + geom_histogram() + 
-    facet_grid(n~par, scales = "free") + theme_classic()
+    facet_grid(n~par, scales = "free") + theme_bw()
   }
 ```
 
 
-### Item a)
+## Item a)
 
 $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$ e $\sigma=2$.
 
@@ -121,7 +121,7 @@ plot_histograma(resultados)
 ```
 
 
-### Item b)
+## Item b)
 
 $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi_{i} \stackrel{ind.}{\sim} N\left(0, \sigma^{2} x_i \right)$ e $\sigma=2$.
 
@@ -160,7 +160,7 @@ cobertura_empirica(resultados)
 plot_histograma(resultados)
 ```
 
-### Item c)
+## Item c)
 
 $\xi_{i} \stackrel{i . i . d .}{\sim} t_{(\nu)}\left(\sigma^{2}\right)$, onde  $\nu=6$ e  $\mathcal{V}(\xi)=\sigma^{2} \frac{\nu}{\nu-2}$.
 
@@ -201,7 +201,7 @@ cobertura_empirica(resultados)
 plot_histograma(resultados)
 ```
 
-### Item d)
+## Item d)
 
 $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi \stackrel{ind.}{\sim} N_n\left(\mathbf{0}, \boldsymbol{\Sigma}\right)$ e a diagonal de $\boldsymbol{\Sigma}$ vale 4 (variância de cada erro) e todos os outros elementos têm valor 0,90 ($\operatorname{Cor}\left(\xi_{i}, \xi_{j}\right) = 0,90, \ j \neq i$).
 
