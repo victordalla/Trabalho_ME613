@@ -1,7 +1,19 @@
---- 
+---
 output: 
   pdf_document:
     fig_crop: no
+fontsize: 10pt
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
 ---
 
 ```{r setup, include=FALSE}
@@ -9,12 +21,11 @@ knitr::opts_chunk$set(
   echo = FALSE, 
   message = FALSE,
   warning = FALSE,
-  tidy.opts = list(width.cutoff = 60),
-  tidy = TRUE
+  fig.align = "center", fig.height = 3, fig.width = 5
   )
 options(
   OutDec = ",", 
-  digits = 4, 
+  digits = 3, 
   knitr.table.format = "latex", 
   xtable.comment = FALSE
   )
@@ -34,10 +45,12 @@ source("comparacao_de_modelo.R")
 ```
 
 ```{r dados, echo=FALSE}
-dados <- read.table("salary.txt", header = FALSE, col.names = c("salario_anual", "sexo", "posicao_empresa", "experiencia"))
+dados <- read.table("../Dados/salary.txt", header = FALSE, col.names = c("salario_anual", "sexo", "posicao_empresa", "experiencia"))
 
 #dados$posicao_empresa <- as.factor(dados$posicao_empresa)
 ```
+
+# Questão 9
 
 ## Introdução
 
@@ -55,7 +68,7 @@ Conforme revelam os gráficos das Figuras \ref{fig:pos_sal} e \ref{fig:completo}
 Entretanto, por meio do gráfico presente na Figura \ref{fig:completo} pode-se notar que na presença de experiência e posição, as mulheres ganham em média mais do que os homens. Quando as varáveis não são levadas em conta ocorre o contrário, ou seja, a média do salário dos homens é maior do que o salário das mulheres como apresenta o boxplot da Figura \ref{fig:sex_sal}.
 
 
-```{r pos_sal, fig.width=6, fig.height=3, fig.cap="Disperção\\label{fig:pos_sal}", fig.pos="center"}
+```{r pos_sal, fig.width=6, fig.height=3, fig.cap="Disperção\\label{fig:pos_sal}"}
 dados %>%
   ggplot(aes(factor(posicao_empresa), salario_anual)) +
   geom_point() +
@@ -64,7 +77,7 @@ dados %>%
 #grid.arrange(plot1, plot2, nrow=1, ncol=2)
 ```
 
-```{r sex_sal, fig.width= 4, fig.height=3, fig.pos="center", fig.cap="salario_sexo\\label{fig:sex_sal}"}
+```{r sex_sal, fig.width= 4, fig.height=3, fig.cap="salario_sexo\\label{fig:sex_sal}"}
 dados %>% 
   ggplot(aes(sexo, salario_anual)) +
   geom_boxplot()+
