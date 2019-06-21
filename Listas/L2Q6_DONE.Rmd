@@ -2,6 +2,12 @@
 output: 
   pdf_document:
     fig_crop: no
+fontsize: 10pt
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
 header-includes:
   - \usepackage[brazil, english, portuguese]{babel}
   - \usepackage[utf8]{inputenc}

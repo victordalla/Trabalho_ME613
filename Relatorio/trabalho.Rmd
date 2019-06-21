@@ -2,7 +2,6 @@
 output: 
   pdf_document:
     fig_crop: no
-bibliography: bibliography.bib
 fontsize: 10pt
 documentclass: article
 geometry: 

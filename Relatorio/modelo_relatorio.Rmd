@@ -1,12 +1,28 @@
 ---
-title: "Modelo de Relatório do fudido"
 output: 
   pdf_document:
     fig_crop: no
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center", fig.height = 3, fig.width = 5
+  )
+options(
+  OutDec = ",", 
+  digits = 3, 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
 ```
 
 Obs: Caio gosta de legendas em Figuras e Tabelas: embaixo para figuras e em cima para tabelas.
