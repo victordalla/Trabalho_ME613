@@ -52,7 +52,7 @@ df <- read.table(
 
 ## Introdução
 
-Os dados são referentes ao preço de venda de 27 imóveis (em 1000 USD), em relação ao imposto do imóvel (em 100 USD), área do terreno (em 1000 pés quadrados), área construída  (em 1000 pés quadrados) e idade do imóvel (em anos). O objetivo é analisar a influência de cada variável explicativa no preço de venda do imóvel. Para isso, serão ajustados modelos lineares e seus coeficientes analisados, sib um nível de significância de $\alpha=0,05$.
+Os dados são referentes ao preço de venda de 27 imóveis (em 1000 USD), em relação ao imposto do imóvel (em 100 USD), área do terreno (em 1000 pés quadrados), área construída  (em 1000 pés quadrados) e idade do imóvel (em anos). O objetivo é analisar a influência de cada variável explicativa no preço de venda do imóvel. Para isso, serão ajustados modelos lineares e seus coeficientes analisados, sob um nível de significância de $\alpha=0,05$.
 
 ## Análise descritiva
 
