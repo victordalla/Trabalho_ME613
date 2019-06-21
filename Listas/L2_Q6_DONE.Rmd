@@ -14,6 +14,7 @@ header-includes:
   - \usepackage[T1]{fontenc}
   - \usepackage[fixlanguage]{babelbib}
   - \usepackage{times}
+  - \usepackage{booktabs}
 ---
 
 ```{r setup, include=FALSE}
@@ -86,14 +87,17 @@ Inicialmente, o modelo considerado para este estudo será o Modelo 1: $Y_i = \be
 
 ### Resultados
 
-```{r, eval=FALSE}
+```{r}
 modelo_simples <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(preco ~ imposto + area_ter + area_cons + idade)
 
 tidy(modelo_simples, conf.int = TRUE) %>% 
   select(-statistic) %>%
   mutate(p.value = format.pval(p.value, eps = 0.001, digits = 2)) %>% 
-  knitr::kable(caption = "\\label{tab:modelo1}Resultados do Modelo 1.")
+  knitr::kable(caption = "\\label{tab:modelo1}Resultados do Modelo 1.",
+               col.names = c("Termo", "Estimativa", "EP", "p-valor", "Inf.", "Sup."),
+               booktabs = T) %>%
+  kableExtra::add_header_above(c(" ", " ", " ", " ", "IC(95%)" = 2))
 ```
 
 A Tabela \ref{tab:modelo1} apresenta os resultados do ajuste do Modelo 1: termos do modelo (term), estimativas pontuais (estimate), erro padrão (std.error), p-valores (p.value) intervalos de confiança (conf.low e conf.high).
@@ -102,14 +106,17 @@ Como esperado, a idade do imóvel não impacta no preço do imóvel, visto que s
 
 Por isso, será ajustado um novo modelo (Modelo 2), que remove o termo associado à área do terreno ($\beta_2$), cujo termo apresentou maior p-valor: $Y_i = \beta_0 + \beta_1 x_1^{*} + \beta_3 x_3^{*} + \beta_4 x_4^{*} + \epsilon_{i}, \epsilon_{i} \stackrel{iid}\sim N(0, \sigma^2)$, cujos parâmetros têm a interpretação usual (as mesmas da do Modelo 1). A Tabela \ref{tab:modelo2} apresenta os resultados do ajuste desse modelo. Como no Modelo 1, a área do terreno também não contribui significativamente no preço dentro deste modelo, visto que seu p-valor foi marginal e o intervalo de confiança conteve o zero.
 
-```{r, eval=FALSE}
+```{r}
 modelo_reduzido <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)) %$% 
   lm(preco ~ imposto + area_cons + idade)
 
 tidy(modelo_reduzido, conf.int = TRUE) %>% 
   select(-statistic) %>%
   mutate(p.value = format.pval(p.value, eps = 0.001, digits = 2)) %>%
-  knitr::kable(caption = "\\label{tab:modelo2}Resultados do Nodelo 2.")
+  knitr::kable(caption = "\\label{tab:modelo2}Resultados do Modelo 2.",
+               col.names = c("Termo", "Estimativa", "EP", "p-valor", "Inf.", "Sup."),
+               booktabs = T) %>%
+  kableExtra::add_header_above(c(" ", " ", " ", " ", "IC(95%)" = 2))
 ```
 
 
@@ -122,7 +129,10 @@ modelo_reduzido <- mutate_at(df, vars(-preco), function(x) (x - mean(x)) / sd(x)
 tidy(modelo_reduzido, conf.int = TRUE) %>%
   select(-statistic) %>%
   mutate(p.value = format.pval(p.value, eps = 0.001, digits = 2)) %>%
-  knitr::kable(caption = "\\label{tab:modelo3}Resultados do Modelo 3.")
+  knitr::kable(caption = "\\label{tab:modelo3}Resultados do Modelo 3.",
+               col.names = c("Termo", "Estimativa", "EP", "p-valor", "Inf.", "Sup."),
+               booktabs = T) %>%
+  kableExtra::add_header_above(c(" ", " ", " ", " ", "IC(95%)" = 2))
 ```
 
 
