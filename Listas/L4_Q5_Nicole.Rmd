@@ -70,13 +70,13 @@ plot_intervalos <- function(resultados) {
     ggplot(aes(repl)) + 
     geom_hline(yintercept = b0, col = "cadetblue", linetype = "dashed") +
     geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = 0.5) + 
-    facet_grid(par~n) + theme_classic()
+    facet_grid(par~n) + theme_bw()
 }
 
 plot_histograma <- function(resultados) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
     ggplot(aes(est)) + geom_histogram() + 
-    facet_grid(n~par, scales = "free") + theme_classic()
+    facet_grid(n~par, scales = "free") + theme_bw()
   }
 ```
 

@@ -60,7 +60,7 @@ Os dados são referentes ao preço de venda de 27 imóveis (em 1000 USD), em rel
 gather(df, "covar", "valor", -preco) %>% 
   ggplot(aes(valor, preco)) + geom_point(col = "gray20", alpha = 0.8) + 
   labs(x = "", y = "preço") + 
-  facet_wrap(~covar, scales = "free") + theme_classic()
+  facet_wrap(~covar, scales = "free") + theme_bw()
 
 # par(mfrow=c(2,2))
 # plot(df$imposto, df$preco, type="p")
