@@ -7,7 +7,7 @@ plot_prediction <- function(model, response, response_name = "resposta") {
     ggplot2::geom_line(aes(fit, fit), col = "chocolate") + 
     ggplot2::geom_point(aes(fit, response), col = "cadetblue") + 
     ggplot2::geom_ribbon(aes(x = fit, ymin = lwr, ymax = upr), fill = "coral", alpha = 0.3) + 
-    ggplot2::labs(x = "predição", y = response_name) + ggplot2::theme_classic()
+    ggplot2::labs(x = "predicao", y = response_name) + ggplot2::theme_classic()
   p
 }
 
@@ -21,22 +21,19 @@ plot_residuals <- function(model, binwidth = NULL, bins = NULL) {
   )
   
   p <- ggplot2::ggplot(residuals) + 
-    ggplot2::labs(y = "resíduo student.") + ggplot2::theme_classic()
+    ggplot2::labs(y = "residuo studentizado") + ggplot2::theme_classic()
   
   gridExtra::grid.arrange(
-    nrow = 2, 
     p + ggplot2::geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + 
-      ggplot2::labs(x = "índice"), 
+      ggplot2::labs(x = "indice"), 
     p + ggplot2::geom_point(aes(x = fitted, y = residual), col = "gray30", alpha = 0.80) + 
-      ggplot2::labs(x = "predito"), 
-    p + ggplot2::geom_histogram(
-      aes(x = residual), fill = "gray30", col = "gray80",
-      binwidth = binwidth, bins = bins
-      ) + ggplot2::labs(x = "resíduo studentizado", y = ""), 
+      ggplot2::labs(x = "valores ajustados"), 
+    p + ggplot2::geom_histogram(aes(x = residual), fill = "gray30", col = "gray80"), 
     ggplot2::ggplot(residuals, aes(sample = residual)) + 
       qqplotr::stat_qq_band(bandType = "pointwise") + 
       qqplotr::stat_qq_line() + 
       qqplotr::stat_qq_point(col = "gray20", alpha = 0.80) + 
-      ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic()
+      ggplot2::labs(x = "quantil teorico", y = "quantil amostral") + ggplot2::theme_classic(), 
+    nrow = 2
   )
 }
