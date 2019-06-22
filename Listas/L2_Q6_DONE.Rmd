@@ -57,8 +57,7 @@ Os dados são referentes ao preço de venda de 27 imóveis (em 1000 USD), em rel
 
 ## Análise descritiva
 
-```{r, fig.cap="\\label{fig:dispersao}Gráficos da váriavel resposta (preço), eixo y, em função das variáveis explicativas, eixo x, indicadas nos rótulos."}
-#Gráfico de dispersão para o preço de venda dos imóveis em função da área construída (are_cons), área do terreno (area_ter), idade e imposto.
+```{r, fig.cap="\\label{fig:dispersao}Gráficos de dispersão do preço de venda dos imóveis em função da área construída, área do terreno, idade e imposto."}
 gather(df, "covar", "valor", -preco) %>% 
   ggplot(aes(valor, preco)) + geom_point(col = "gray20", alpha = 0.8) + 
   labs(x = "", y = "preço") + 
@@ -68,8 +67,7 @@ gather(df, "covar", "valor", -preco) %>%
 Como as variáveis explicativas são todas quantitativas, pode-se criar gráficos de dispersão do preço de venda do imóvel, em relação a cada covariável (Figura \ref{fig:dispersao}). A partir de cada um deles, é possível perceber que a relação é positiva entre a variável resposta e as variáveis explicativas imposto, área do terreno(area_ter) e área construída (area_cons). Já para a variável idade, a relação não é clara.
 
 
-```{r fig.cap="\\label{fig:cor}"}
-# , fig.cap="\\label{fig:cor}Gráfico da matriz de correlação das covariáveis área construída (are_cons), área do terreno (area_ter), idade, imposto e da variável resposta. Quanto mais vermelho, mais positiva a correlação; quanto mais azul, mais negativa."
+```{r fig.cap="\\label{fig:cor}Gráfico da matriz de correlação das covariáveis área construída, área do terreno, idade, imposto e da variável resposta."}
 GGally::ggcorr(df)
 ```
 
