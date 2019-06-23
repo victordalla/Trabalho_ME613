@@ -240,11 +240,10 @@ i <- 0
 for (n in ns) {
   x <- runif(n, 5, 20)
   xbar <- mean(x)
-  
+  m <- matrix(data=0.9 * sigma ^ 2, nrow=n, ncol=n)
+  diag(m) <- sigma ^ 2
   for (repl in 1:r) {
     i <- i + 1
-    m <- matrix(data=0.9, nrow=n, ncol=n)
-    diag(m) <- sigma^2
     y <- b0 + b1*(x-xbar) + c(mvtnorm::rmvnorm(1, rep(mu, nrow(m)), m))
     fit <- lm(y ~ I(x-xbar))
     # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
