@@ -73,9 +73,15 @@ plot_intervalos <- function(resultados) {
     facet_grid(par~n) + theme_bw()
 }
 
-plot_histograma <- function(resultados) {
+plot_histograma <- function(resultados, binwidth = NULL, bins = NULL) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
-    ggplot(aes(est)) + geom_histogram(bins = 15) + 
+    ggplot(aes(est)) + geom_histogram() + 
+    facet_grid(n~par, scales = "free") + theme_bw()
+  }
+
+plot_density <- function(resultados) {
+  tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
+    ggplot(aes(est)) + geom_density() + 
     facet_grid(n~par, scales = "free") + theme_bw()
   }
 ```
