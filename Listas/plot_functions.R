@@ -21,7 +21,7 @@ plot_residuals <- function(model, binwidth = NULL, bins = NULL) {
   )
   
   p <- ggplot2::ggplot(residuals) + 
-    ggplot2::labs(y = "resíduo studentizado") + ggplot2::theme_bw()
+    ggplot2::labs(y = "resíduo student.") + ggplot2::theme_bw()
   
   gridExtra::grid.arrange(
     p + ggplot2::geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + 
