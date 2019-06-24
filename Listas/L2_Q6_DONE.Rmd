@@ -118,7 +118,7 @@ tabela_resultados(modelo_reduzido, "\\label{tab:modelo3}Resultados do Modelo 3."
 
 A Figura \ref{fig:pred} apresenta o gráfico de predição do Modelo 2 para o preço, com intervalo de confiança para as predições a 95\% (banda ao redor da reta). Ela indica que os dados são bem descritos por uma reta, uma vez que todos os pontos estão dentro do intervalo de confiança para as predições e acompanham bem a reta.
 
-A Figura \ref{fig:resid} apresenta 4 gráficos: o primeiro sugere adequada a suposição de homocedasticidade; o segundo não sugere qualquer indício de dependência; o terceiro tem pouca interpretabilidade devido ao número pequeno de observações; finalmente, o quarto gráfico sugere adequada a suposição de normalidade para os resíduos, já que eles acompanham bem a reta e estão todos dentro da banda de confiança. Portanto, o modelo foi bem ajustado e as inferências feitas a partir dele são válidas.
+A Figura \ref{fig:resid} apresenta quatro gráficos: o primeiro não sugere qualquer indício de dependência; o segundo sugere adequada a suposição de homocedasticidade; o terceiro tem pouca interpretabilidade devido ao número pequeno de observações; finalmente, o quarto gráfico sugere adequada a suposição de normalidade para os resíduos, já que eles acompanham bem a reta e estão todos dentro da banda de confiança. Portanto, o modelo foi bem ajustado e as inferências feitas a partir dele são válidas.
 
 ```{r, fig.cap="\\label{fig:pred}Gráfico da predição \\textit{versus} preço observado. A reta laranja é a reta ajustado pelo Modelo 3. A banda ao redor da reta é o intervalo de confiança para as predições a 95\\%."}
 plot_prediction(modelo_reduzido, df$preco, "preço")

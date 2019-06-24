@@ -84,7 +84,7 @@ O modelo que explica o consumo de oxigênio (VO2) em função da carga e que con
 
 Uma hipótese de interesse do problema é testar se há diferenças nos efeitos das etiologias no consumo de oxigênio, ou seja, $H_0: \beta_{0 1} = ... = \beta_{0 4}$ \textit{versus} $H_1: \beta_{0 j} \neq \beta_{0 k}$ para algum algum par $j \neq k$. No Modelo 1, é importante testar se os efeitos da carga no VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
 
-Nesse caso, o modelo que explica o consumo de oxigênio (VO2) em função da carga, considerando as etiologias de maneita aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
+Nesse caso, o modelo que explica o consumo de oxigênio (VO2) em função da carga, considerando as etiologias de maneira aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
 
 - $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
 - $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
@@ -106,7 +106,7 @@ Isso indica que é mais razoável considerar o Modelo 2 para a análise, ou seja
 
 A Figura \ref{fig:pred} apresenta o gráfico do VO2 em função da carga, a reta ajustada no Modelo 2 e o intervalo de confiança para as predições a 95\% (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
 
-A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos do Modelo 2: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
+A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos do Modelo 2: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e grande parte da cauda positiva fora da banda de confiança.
 
 Portanto, é preciso um modelo mais adequado para esta análise. Uma sugestão é o uso de uma distribuição contínua com suporte postivo (e.g. Gama) que descreva melhor a variável resposta (variação no consumo de oxigênio), que possa ser modelada através de Modelos Lineares Generalizados.
 
