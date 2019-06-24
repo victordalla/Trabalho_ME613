@@ -13,12 +13,12 @@ testeF.CBM <- function(fit.model,m.C,m.M)
         solve(m.C %*% m.cov.beta %*% t(m.C)) %*%
         (m.C %*% v.beta-m.M) / e.q
     e.pvalor <- 1 - pf(e.F, e.q, n - e.p) # p-valor
-    cat("Estatistica F = ",round(e.F,2),"\n")
-    cat("pvalor = ",round(e.pvalor,4),"\n")
-    cat("Matriz C :","\n")
-    print(m.C)
-    cat("Matriz M :","\n")
-    print(m.M)
+    #cat("Estatistica F = ",round(e.F,2),"\n")
+    #cat("pvalor = ",round(e.pvalor,4),"\n")
+    #cat("Matriz C :","\n")
+    #print(m.C)
+    #cat("Matriz M :","\n")
+    #print(m.M)
     return(e.pvalor)
 }
 
