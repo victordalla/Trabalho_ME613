@@ -14,6 +14,7 @@ header-includes:
   - \usepackage[T1]{fontenc}
   - \usepackage[fixlanguage]{babelbib}
   - \usepackage{times}
+  - \usepackage{booktabs}
 ---
 
 ```{r setup, include=FALSE}
@@ -21,12 +22,12 @@ knitr::opts_chunk$set(
   echo = FALSE, 
   message = FALSE,
   warning = FALSE,
-  fig.align = "center", fig.height = 3, fig.width = 5
+  fig.align = "center", fig.height = 3, fig.width = 5 
   )
 options(
   OutDec = ",", 
-  digits = 3, 
-  # knitr.table.format = "latex", 
+  digits = 3,  
+  knitr.table.format = "latex", 
   xtable.comment = FALSE
   )
 ```
@@ -38,10 +39,11 @@ library(ggplot2)
 library(knitr)
 library(broom)
 source("plot_functions.R")
+source("tabela_resultados.R")
 ```
 
 ```{r}
-df <- read.table("coelhos.txt")
+df <- read.table("../Dados/Ratkowsky.dat")
 colnames(df) <- c("idade", "peso")
 ```
 
@@ -49,7 +51,7 @@ colnames(df) <- c("idade", "peso")
 plot_nls_residuals <- function(model, binwidth = NULL, bins = NULL) {
   # precisa de ggplot2, gridExtra, qqplotr
   residuals <- data.frame(
-    residual = resid(model), 
+    residual = residuals(model), 
     fitted = fitted(model), 
     index = 1:length(fitted(model))
   )
@@ -95,7 +97,7 @@ df %>% ggplot(aes(idade, peso)) + geom_point() +
   theme_bw()
 ```
 
-##Análise Inferencial
+## Análise Inferencial
 
 # Modelo Linear 1
 
@@ -109,25 +111,26 @@ $$
 - $\beta_0$ é o peso da lente esperado para um coelho recém nascido.
 - $- \frac{\beta_2}{2\beta_1}$ é a idade que retorna o maior(ou menor) peso da lente de um coelho.
 
-```{r fig.cap= "\\label{tab:m1} Estimativas dos parâmetros, intervalos de confiança e teste de nulidade."}
+```{r}
 m1 <- lm(peso ~ poly(idade, 2, raw = T), data = df)
-sum <- summary(m1)
-tab1 <- sum$coefficients
-names(tab1) <- c("Estimativa", "EP", "Estat-t", "p-valor")
+# sum <- summary(m1)
+# tab1 <- sum$coefficients
+# names(tab1) <- c("Estimativa", "EP", "Estat-t", "p-valor")
+tabela_resultados(m1, "\\label{tab:m1}")
 ```
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 35,58 & 3,84 & 9,26 & 0,00 \\ 
-  poly(idade, 2, raw = T)1 & 0,70 & 0,03 & 25,05 & 0,00 \\ 
-  poly(idade, 2, raw = T)2 & -0,00 & 0,00 & -16,16 & 0,00 \\ 
-   \hline
-\end{tabular}
-\end{table}
+<!-- \begin{table}[ht] -->
+<!-- \centering -->
+<!-- \begin{tabular}{rrrrr} -->
+<!--   \hline -->
+<!--  & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\  -->
+<!--   \hline -->
+<!-- (Intercept) & 35,58 & 3,84 & 9,26 & 0,00 \\  -->
+<!--   poly(idade, 2, raw = T)1 & 0,70 & 0,03 & 25,05 & 0,00 \\  -->
+<!--   poly(idade, 2, raw = T)2 & -0,00 & 0,00 & -16,16 & 0,00 \\  -->
+<!--    \hline -->
+<!-- \end{tabular} -->
+<!-- \end{table} -->
 
 O Modelo Quadrático foi ajustado via Mínimos Quadrados Ordinários, e pela Tabela \ref{tab:m1}, conclui-se que os parâmetros são todos significativos, e portanto não é necessário remover alguma covariável.
 Entretanto, pela Figura \ref{fig:m1} é possível ver que o Modelo Quadrático não capta bem os dados, e os pontos de dispersão estão fora do intervalo de predição da curva. Uma possível causa do modelo não ser adequado, é devido a estrutura da parábola, que espera que os valores decrescam, o que não acontece com o peso das corneas em função da idade, que só tende a aumentar conforme a idade aumenta.
@@ -148,33 +151,52 @@ plot_residuals(m1)
 
 Como visto que um Modelo Linear Quadrático não é viavél para os dados, iremos ajustar um modelo não linear, com alguma função que se aproxime da estrutura dos dados. Dado que as variáveis são positivas, faz sentido usarmos ....
 
-# Modelo Não Linear
-
+# Modelo Não Linear I
 
 $$
-\mathbf Y = \beta_0 \log (\beta_1 + \beta_2 \mathbf x) + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
+\mathbf Y = \beta_0  + \beta_1 (\beta_2 + \mathbf x)^{-1} + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
 
-
-
 ```{r}
-m2 <- nlsLM(peso ~ beta0 * log(beta1 + beta2 * idade), start = c(beta0=1, beta1=1, beta2=1), data = df)
+m2 <- nlsLM(peso ~ beta0 - beta1 / (idade + beta2), start = c(beta0 = 1, beta1 = 1, beta2 = 1), data = df)
+tabela_resultados(m2, "\\label{tab:m2}")
 ```
 
-```{r}
-summary(m2)
-```
-
-```{r fig.cap="\\label{fig:m2}Gráficos da curva do modelo 3"}
+```{r fig.cap="\\label{fig:m2}Gráficos da curva do modelo 2"}
 df %>% ggplot(aes(idade, peso)) +
   geom_point() +
   geom_line(aes(idade, fitted(m2), col = "red")) +
   theme_bw()
 ```
 
-
-```{r fig.cap="\\label{fig:resm2}Gráficos para diagnóstico dos resíduos do modelo 3"}
+```{r fig.cap="\\label{fig:resm2}Gráficos para diagnóstico dos resíduos do modelo 2"}
 plot_nls_residuals(m2)
+```
+
+# Modelo Não Linear II
+
+$$
+\mathbf Y = \beta_0  + \beta_1 \exp (\beta_2 / \mathbf x) + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
+$$
+```{r}
+
+```
+
+```{r}
+m3 <- nlsLM(peso ~ beta0 + beta1 * exp (beta2/idade), start = c(beta0 = 1, beta1 = 1, beta2 = 1), data = df)
+tabela_resultados(m3, "\\label{tab:m3}")
+```
+
+```{r fig.cap="\\label{fig:m3}Gráficos da curva do modelo 3"}
+df %>% ggplot(aes(idade, peso)) +
+  geom_point() +
+  geom_line(aes(idade, fitted(m3), col = "red")) +
+  theme_bw()
+```
+
+
+```{r fig.cap="\\label{fig:resm3}Gráficos para diagnóstico dos resíduos do modelo 3"}
+plot_nls_residuals(m3)
 ```
 
 
