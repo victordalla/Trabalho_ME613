@@ -16,6 +16,7 @@ header-includes:
   - \usepackage{times}
   - \usepackage{float}
   - \usepackage{booktabs}
+  - \usepackage{caption}
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +24,7 @@ knitr::opts_chunk$set(
   echo = FALSE, 
   message = FALSE,
   warning = FALSE,
-  fig.align = "center", fig.height = 3, fig.width = 5
+  fig.align = "center", fig.height = 2.5, fig.width = 4
   )
 options(
   OutDec = ",", 
@@ -47,13 +48,7 @@ source("test_functions.R")
 
 ## Introdução
 
-Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nessa classe de modelos há três suposições: indepedência das observações, normalidade e homocedasticidade dos erros (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de 100 valores da resposta segundo alguns critérios considerando três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=1,5$ e covariável $x$ fixa gerada de uma distribuição $U(5, 20)$. As ferramentas utilizadas para estudar os estimadores foram os gráficos e as tabelas descritos a seguir.
-
-As Figuras \ref{fig:qqa},\ref{fig:qqb}, \ref{fig:qqc} e \ref{fig:qqd} apresentam à esquerda os gráficos de quantil-quantil dos parâmetros $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes para cada tamanho amostral do conjuto de covariáveis $x$ e os gráficos à direita trazem a densidade empírica dos estimadores obtida dos 100 ajustes para cada tamanho da amostra de $x$.
-
-Os intervalos de confiança foram gerados com um coeficiente de $\gamma =95\%$ de confiança. Isso representa que, de acordo com a inferência frequentista, quando gerados 100 intervalos deste tipo, em média, 95 contém o verdadeiro valor do parâmetro. Assim, as Tabelas \ref{tab:cober_a}, \ref{tab:cober_b}, \ref{tab:cober_c} e \ref{tab:cober_d}  mostram as probabilidades de cobertura dos intervalos de confiança para cada tamanho amostral. Já as Figuras \ref{fig:ic_a}, \ref{fig:ic_b}, \ref{fig:ic_c} e \ref{fig:ic_d} representam os intervalos de confiança para as estimativas obtidas a cada réplica e para os três tamanhos amostrais.
-
-Por fim, as Tabelas \ref{tab:cober_ta}, \ref{tab:cober_tb}, \ref{tab:cober_tc} e \ref{tab:cober_td} apresentam os níveis descritivos empíricos dos testes $H_{0} : \beta_{0}=1$ vs $H_{1} : \beta_{0} \neq 1$ e $H_{0} : \beta_{1}=0$ vs $H_{1} : \beta_{1} \neq 0$ a um nível de significância $\alpha = 0,05$. Para testar as hipóteses acima utilizamos o teste do tipo Wald ($C \beta=M$). (detalhes em https://www.ime.unicamp.br/~cnaber/aula_Intro_MRLM_REG_1S_2019_parte_3_Teste_CB.pdf).
+Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nessa classe de modelos há três suposições: indepedência das observações, normalidade e homocedasticidade dos erros (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de 100 valores da resposta segundo alguns critérios considerando três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=1,5$ e covariável $x$ fixa gerada de uma distribuição $U(5, 20)$. Serão então calculados intervalos de confiança a 95\% e testdaos os testes $H_{0} : \beta_{0}=1$ vs $H_{1} : \beta_{0} \neq 1$ e $H_{0} : \beta_{1}=0$ vs $H_{1} : \beta_{1} \neq 0$ a um nível de significância $\alpha = 0,05$. Para testar as hipóteses acima utilizamos o teste do tipo Wald (ou tipo $C \beta=M$, detalhes em https://www.ime.unicamp.br/~cnaber/aula_Intro_MRLM_REG_1S_2019_parte_3_Teste_CB.pdf).
 
 
 ```{r constantes}
@@ -154,8 +149,8 @@ gridExtra::grid.arrange(q_a, d_a, ncol=2)
 ```
 
 Por meio do gráfico à esquerda da Figura \ref{fig:qqa}, nota-se  que a medida que o tamanho de $n$ aumenta, a variância das estimativas diminui pois os pontos concentram-se em torno da reta. Assim, percebemos a consistência dos estimadores de mínimos quadrados quando todas as suposições do modelo são verificadas. Já pelo gráfico da direita, constatou-se que a distribuição do estimador de $\beta_1$ assemelha-se a uma distribuição normal quando $n$ cresce porém ambas distribuições empíricas são assimétricas.
- 
-```{r ic_a, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item a).\\label{fig:ic_a}"}
+
+```{r, eval=F, fig.cap="\\label{fig:ic_a}Intervalos de confianca para as estimativas em cada tamanho amostral item a."}
 plot_intervalos(resultados)
 ```
 
@@ -163,11 +158,11 @@ O comportamento dos intervalos de confiança para $\beta_0$ e $\beta_1$ obtidos 
 
 ```{r}
 cobertura_empirica_ic(resultados) %>%
-kable(caption = "\\label{cober_a}Cobertura empírica dos intervalos de confiança",
+kable(caption = "\\label{cober_a}Cobertura empírica dos intervalos de confiança.",
       booktabs = T, col.names = c("n","Beta0", "Beta1"))
 
 cobertura_empirica_teste(resultados) %>%
- kable(caption = "\\label{cober_ta}Cobertura empírica dos testes", booktabs = T)
+ kable(caption = "\\label{cober_ta}Cobertura empírica dos testes.", booktabs = T)
 ```
 
 É possível notar por meio da Tabela \ref{tab:cober_ta} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
@@ -214,17 +209,17 @@ gridExtra::grid.arrange(q_b, d_b, ncol=2)
 
 Observa-se que, quando os gráficos da Figura \ref{fig:ic_b} são comparados com a Figura \ref{fig:ic_a}, eles apresentam semelhança no sentido de diminuição no tamanho do intervalo a medida que $n$ cresce. Porém, a variância dos intervalos é maior comparado aos intervalos do Item a.Nota-se através da Tabela \ref{tab:cober_b} que a probabilidade de cobertura do intervalo de confiança para as estimativas é bem próxima do valor verdadeiro ($95\%$) assim como foi observado no Item a.
 
-```{r ic_b, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item b).\\label{fig:ic_b}"}
+```{r ic_b, eval=F, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item b).\\label{fig:ic_b}"}
 plot_intervalos(resultados)
 ```
 
 ```{r}
 cobertura_empirica_ic(resultados) %>%
-kable(caption = "\\label{cober_b}Cobertura empírica dos intervalos de confiança para o Item b",
+kable(caption = "\\label{cober_b}Cobertura empírica dos intervalos de confiança para o Item b.",
       booktabs = T, col.names = c("n","Beta0", "Beta1"))
 
 cobertura_empirica_teste(resultados) %>%
-kable(caption = "\\label{cober_tb}Cobertura empírica dos testes,item b", booktabs = T, digits = 3)
+kable(caption = "\\label{cober_tb}Cobertura empírica dos testes,item b.", booktabs = T, digits = 3)
 ```
 
 É possível notar por meio da Tabela \ref{cober_b} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
@@ -273,7 +268,7 @@ gridExtra::grid.arrange(q_c, d_c, ncol=2)
 
 Os resultados apresentados na Figura \ref{fig:ic_c} revelam que não há mudanças significativas no comportamento dos intervalos comparado aos gráficos da Figura \ref{fig:ic_b} assim como não há mudanças significativa na probabilidade de cobertura dos intervalos, como mostra a Tabela \ref{tab:cober_c}.
 
-```{r ic_c, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item c).\\label{fig:ic_c}"}
+```{r ic_c, eval=F,fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item c).\\label{fig:ic_c}"}
 plot_intervalos(resultados)
 ```
 
@@ -328,7 +323,7 @@ d_d <- plot_density(resultados)
 gridExtra::grid.arrange(q_d, d_d, ncol=2)
 ```
 
-```{r ic_d, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item d).\\label{fig:ic_d}"}
+```{r ic_d, eval=F,fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item d).\\label{fig:ic_d}"}
 plot_intervalos(resultados, alpha = 1)
 ```
 
