@@ -361,7 +361,7 @@ i <- 0
 for (n in ns) {
   x <- runif(n, 5, 20)
   xbar <- mean(x)
-  M <- matrix(data=0.9 * sigma ^ 2, nrow=n, ncol=n)
+  M <- matrix(data=3.6 * sigma ^ 2, nrow=n, ncol=n)
   diag(m) <- sigma ^ 2
   for (repl in 1:r) {
     i <- i + 1
@@ -391,8 +391,8 @@ plot_intervalos(resultados)
 ```
 
 ```{r}
-#cobertura_empirica_ic(resultados) %>%
-# xtable(label = "cober_d", caption = "Cobertura empírica dos intervalos de confiança item d)")
+cobertura_empirica_ic(resultados) %>%
+ xtable(label = "cober_d", caption = "Cobertura empírica dos intervalos de confiança item d)")
 ```
 
 ```{r}
