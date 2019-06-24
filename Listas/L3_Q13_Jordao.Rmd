@@ -68,7 +68,7 @@ Sendo assim, o objetivo desta análise é comparar a eficácia entre escovas de 
 ## Análise Descritiva I
 
 
-```{r 12-explore, fig.cap="\\label{fig:explo1}Gráfico da relação entre o IPB antes e depois da escovação para cada tratamento, com retas (em azul) de 45 graus saindo da origem."}
+```{r 12-explore, fig.cap="\\label{fig:explo1}Gráficos da relação entre o IPB antes e depois da escovação para cada tratamento, cada um com a reta identidade (em azul)."}
 df %>% ggplot(aes(x = Antes, y = Depois)) +
   geom_point() + geom_abline(intercept = 0, slope = 1, col = "blue") + 
   facet_grid(Dentrificio ~ Escova) + theme_bw()
@@ -109,7 +109,7 @@ A Tabela \ref{tab:m1} apresenta os resultados desse modelo. Nela, se observa que
 
 ### Modelo 2
 
-Sendo assim, um segundo modelo é proposto:
+Sendo assim, um segundo modelo é proposto, que não considera a interação entre *tipo da escova* e *uso do dentrifício*:
 
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -122,7 +122,7 @@ m2 <- lm(Razao ~ Escova + Dentrificio,
 tabela_resultados(m2, "\\label{tab:m2}")
 ```
 
-A Tabela \ref{tab:m2} contém os resultados do ajuste desse modelo. É possível observar que o coeficiente da covariável do uso de dentrifício não foi significante (0,73, muito maior que $\alpha=0,05$), assim como no modelo anterior, e será removido, um indício de que não há diferença com a utilização de dentrifício.
+A Tabela \ref{tab:m2} contém os resultados do ajuste desse modelo. É possível observar que o coeficiente da covariável do uso de dentrifício não foi significante (p-valor de 0,73, muito maior que $\alpha=0,05$), assim como no modelo anterior, e será removido, um indício de que não há diferença com a utilização de dentrifício.
 
 ### Modelo 3
 
@@ -149,28 +149,22 @@ A Tabela \ref{tab:m3} apresenta os resultados desse ajuste. Ela indica que apena
 
 A Figura \ref{fig:res1} contém quatro gráficos referentes à análise de resíduos do modelo. Nela, é possível observar que, por mais que os coeficientes sejam significativos, os resíduos não respeitam as suposições do modelo: em particular, os dois primeiros gráficos indicam alguma heterocedasticidade e os dois seguintes indicam assimetria e caudas pesadas na distribuição dos erros, visto que os pontos na cauda do qq-plot não respeitam as bandas de confiança dos quantis. Indicando que o modelo não está respeitando as suposições e, portanto, não foi bem ajustado.
 
-Desta forma, concluimos que, apenas há evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+Mesmo com os problemas supracitados, o modelo aponta que há evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
 
 ## Análise Descritiva II
 
-Buscando responder as mesmas perguntas, definimos uma nova variável de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$, a motivação para o uso desta nova variável é que levamos em conta a maior redução no IPB, $IPB_{depois} - IPB_{antes}$, quanto menor melhor, levando em conta a magnetude do $IPB$ ao início de cada tratamento, no termo $\frac{1}{IPB_{antes}}$ que realiza uma mudança na escala de cada ponto individualmente.
-
-Desta forma, será introduzido uma nova variável:
-
- - $\mathbf Y_c$: a variável resposta de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$;
+Buscando responder as mesmas perguntas, definimos uma nova variável resposta $\mathbf Y_c$, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$. A motivação para o uso desta nova variável é que lea leva em conta a redução no IPB - $IPB_{depois} - IPB_{antes}$, levando em conta a magnetude do $IPB$ ao início de cada tratamento, no termo $\frac{1}{IPB_{antes}}$ que realiza uma mudança na escala de cada ponto individualmente. Assim, quanto menor for $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$, melhor.
 
 
-```{r fig.cap="\\label{fig:explo2}Gráfico da relação entre o IPB antes e depois da escovação para cada tratamento, com retas (em azul) de 45 graus para baixo, saindo da origem."}
+```{r fig.cap="\\label{fig:explo2}Gráfico da relação entre o IPB antes e depois da escovação para cada tratamento, com retas de coeficiente angular -1 saindo da origem (em azul)."}
 df %>% ggplot(aes(x = Antes, y = Depois - Antes)) +
   geom_point() + geom_abline(intercept = 0, slope = -1, col = "blue") + 
   facet_grid(Dentrificio ~ Escova) + theme_bw()
 ```
 
-Como está alteração é apenas uma alteração na localização da variável resposta, a interpretação da Figura \ref{fig:explo2} é similar, porém deve-se notar que os casos onde houve menor desempenho na escovação agora são os dados mais próximos do eixo horizontal, pois nestes casos $IPB_{depois} - IPB_{antes} = 0$ e os pontos na reta azul são os que obtiveram total remoção das placas bacterianas.
+A Figura \ref{fig:explo2} contém quatro gráficos de dispersão, um para cada tratamento, sendo no eixo horizontal o IPB antes da execução da escovação e no eixo vertical depois, cada um acompanhado da reta com coeficiente angular -1 e intercepto na origem (em azul). Note que $\mathbf Y_c$ é uma translação de $\mathbf Y$. Daí, a interpretação da Figura \ref{fig:explo2} é análoga, porém deve-se notar que os casos onde houve a menor redução de IPB após a escovação agora são os dados mais próximos de zero (eixo x), pois nestes casos $IPB_{depois} - IPB_{antes} = 0$, já os pontos na reta azul são os que obtiveram total remoção das placas bacterianas. Note ainda os dados agora são de valores negativos e com uma quantidade razoável próxima ao zero, levando isso em conta já seria interessante buscar metodologias além do modelo linear homocedástico simples.
 
-Note que, os dados agora são de valores negativos e com uma quantidade razoável próxima ao zero, levando isso em conta já seria interessante buscar metodologias além do modelo linear homocedastico simples.
-
-## Análise Inferencial I
+## Análise Inferencial II
 
 ### Modelo 4
 
@@ -186,13 +180,11 @@ m4 <- lm(Centrada ~ Escova * Dentrificio,
 tabela_resultados(m4, "\\label{tab:m4}")
 ```
 
-Podemos notar que os valores ajustados dos coeficientes são os mesmos, exceto no intercepto, esse é um comportamento esperado, uma vez que houve apenas uma mudança na localização da variável resposta.
-
-Como no caso anterior observamos que a presença de *dentrifício* não é significativa, tanto sozinho, quanto em conjunto com o outro fator, *tipo da escova*, desta forma, reduzimos o modelo removendo a interação.
+A Tabela\ref{tab:m4} apresenta os resultados desse modelo. Nela, é possível notar que os valores ajustados são os mesmos dos do Modelo 4 (Tabela \ref{tab:m1}), exceto para o intercepto. Esse é um comportamento esperado, uma vez que $\mathbf Y_c$ é uma translação de $\mathbf Y$: $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}} = \frac{IPB_{depois}}{IPB_{antes}} - 1$. Como antes (Modelo 1), observamos que a presença de *dentrifício* não é significativa, tanto em seu efeito principal, quanto na interação com o *tipo da escova*. Desta forma, reduzimos o modelo removendo a interação.
 
 ### Modelo 5
 
-Sendo assim, é necessário reajustar este novo modelo,
+Como exposto anteriormente, um novo modelo, que desconsidera a interação entre as covariáveis, se faz mais razoável:
 
 $$
 \mathbf Y_c = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -204,11 +196,11 @@ m5 <- lm(Centrada ~ Escova + Dentrificio,
 tabela_resultados(m5, "\\label{tab:m5}")
 ```
 
-O novo ajuste não apresenta melhora na significância no fator do *dentrifício*.
+A Tabela 2 apresenta os resultados do novo ajuste. É possível observar que o coeficiente da covariável do uso de dentrifício não foi significante (p-valor de 0,73), assim como nos Modelos 1, 2 e 4, e será removido, havendo um indício de que não há diferença com a utilização de dentrifício.
 
 ### Modelo 6
 
-Com essas reduções obtemos, o qual é semelhante com o Modelo 3,
+Com essas reduções obtemos o seguinte modelo (Modelo 6), o qual é semelhante com o Modelo 3,
 
 $$
 \mathbf Y_c = \beta_0 + \beta1 \mathbf x_1 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -221,21 +213,17 @@ stt <- summary(m6)
 tabela_resultados(m6, "\\label{tab:m6}")
 ```
 
-Podemos observar que os coeficientes restantes são significativos, e os resíduos, Fig \ref{fig:res2} são equivalentes ao apresenteados pelo modelo 3, não respeitando as suposições feitas pelo modelo.
+Através da Tabelao \ref{tab:m6}, podemos observar que os coeficientes restantes são significativos, e os resíduos, Fig \ref{fig:res2} são equivalentes ao apresenteados pelo modelo 3, não respeitando as suposições feitas pelo modelo.
 
 ```{r fig.cap="\\label{fig:res2}Gráficos para diagnóstico dos resíduos."}
 plot_residuals(m6)
 ```
 
-Note que,
-$$
-\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}} = \frac{IPB_{depois}}{IPB_{antes}} - 1
-$$
+A Figura \ref{fig:res2} contém quatro gráficos referentes à análise de resíduos do modelo. Eles são semelhantes aos obtidos pelo Modelo 3 na Figura \ref{fig:res1}. Do mesmo modo, é possível observar que, por mais que os coeficientes sejam significativos, os resíduos não respeitam as suposições do modelo: em particular, os dois primeiros gráficos indicam alguma heterocedasticidade e os dois seguintes indicam assimetria e caudas pesadas na distribuição dos erros, visto que os pontos na cauda do qq-plot não respeitam as bandas de confiança dos quantis. Indicando que o modelo não está respeitando as suposições e, portanto, não foi bem ajustado.
 
-Uma vez que todas modelagens propostas neste relatório alteram os valores do coeficiente $beta_0$ com as mudanças de localização, isso explica que na mudança da variável resposta resultou uma deslocação de um nos $beta_0$ de todos modelos ajustados na Análise Inferencial II, a casela de referência.
 
-Desta forma, concluímos que que o uso das escovas convencionais reduzem `r m6$coefficients[1]` $\pm$ `r stt$coefficients[3]` em média o IPB encontrado antes da escovação e uso da escova monobloco `r m6$coefficients[1] + m6$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores, como visto anteriormente.
+## Conclusão
 
-Podemos concluir que o deslocamento na posição da variável de interesse não resulto em diferenças nas conclusões das análises
+Diversos modelos foram ajustados para avaliar a redução de Indíce de Placa Bacteriana (IPB) após a combinação de 4 escovações: escova convencional com dentrifício, escova convencional sem dentrifício, escova monobloco com dentrifício, escova monobloco sem dentrifício. Os modelos finais (Modelos 3 e 6) não levam em conta o uso de dentrifício, ou seja, a conclusão foi de que seu uso não impacta na redução de IPB. Além disso, o uso das escovas convencionais reduzem -0,389 (IC(95\%)=[-0,448; -0,329]) em média o IPB encontrado antes da escovação e uso da escova monobloco -0,289 (IC(95\%)=[-0,405; -0,206]), e, desta forma, as escovas convencionais se mostram superiores, como visto anteriormente.
 
-Para um estudo mais aprofundado para relação da razão do $IPB_{depois}$ sobre o $IPB_{antes}$ um modelo multiplicativo poderia ser mais adequado modelando o $IPB_{depois}$ em função dos fatores e do $IPB_antes$, assim não seria modelado apenas a média dos efeitos dos tratamento. E também o mais adequado seria procurar uma modelagem onde as suposições fosse de acordo com as características do dados, como mencionado na Análise Descritiva I.
+Entretanto, o ajuste desses modelos não se mostrou adequado. Assim, sugere-se outros ajustes, como a modelagem do $IPB_{depois}$ em função do $IPB_{antes}$, tipo de escova e uso de dentrifício, potentcialmnte com a inclusão do termo de interação entre o $IPB_{antes}$ e as outras covariáveis. Outra alternativa seria uma modelagem mais adequada para a natureza da variável resposta (positiva, no do $IPB_{depois}$).
