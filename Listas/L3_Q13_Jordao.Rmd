@@ -60,10 +60,9 @@ df <- df %>% transmute(Individuo = X1,
 
 ## Introdução
 
-Os dados são referentes a um estudo realizado na área de Odontopediatria realizado na Faculdade de Odontologia da Universidade de São Paulo, pelos pesquisadores Célia Regina Rodrigues e Symonne Parizotto, os quais, contém os valores correspondentes ao Indíce de Placa Bacteriana (IPB) medidos nos dentes, pré-molares e molares, antes e depois da escovação dental de 32 crianças entre 4 e 6 anos de idade, sob 4 tratamento, escova convencional com dentrifício, escova convencional sem dentrifício, escova monobloco com dentrifício, escova monobloco sem dentrifício.
-O conjunto inicial dos indivíduos foi dividido em 4 subgrupos de 8 membros, onde a orde de aplicação dos tratamentos foram diferentes e para evitar efeitos residuais cada tratamento teve um espaçamento de uma semana.
+Os dados são referentes a um estudo realizado na área de Odontopediatria realizado na Faculdade de Odontologia da Universidade de São Paulo, pelos pesquisadores Célia Regina Rodrigues e Symonne Parizotto, os quais contém os valores correspondentes ao Indíce de Placa Bacteriana (IPB) medidos nos dentes pré-molares e molares antes e depois da escovação dental de 32 crianças entre 4 e 6 anos de idade, sob 4 tratamentos: escova convencional com dentrifício, escova convencional sem dentrifício, escova monobloco com dentrifício, escova monobloco sem dentrifício. O conjunto inicial dos indivíduos foi dividido em 4 subgrupos de 8 membros, onde a ordem de aplicação dos tratamentos foram diferentes e para evitar efeitos residuais cada tratamento teve um espaçamento de uma semana.
 
-Sendo assim, o objetivo desta análise é comparar a eficácia entre escovas de dentes comuns e escovas de dentes do tipo monobloco com e sem o uso de dentrifício (pasta de dente), para isso avaliamos a razão entre duas variáveis, IPB antes e depois das escovações com as condições citadas anteriormente. Desta forma, temos nossa variável resposta $\frac{IPB_{depois}}{IPB_{antes}}$, a qual, quanto menor ela for, melhor desempenho na redução das placas.
+Sendo assim, o objetivo desta análise é comparar a eficácia entre escovas de dentes comuns e escovas de dentes do tipo monobloco com e sem o uso de dentrifício (pasta de dente), isto é, qual combinação (tratamento) de escovas mais reduz o IPB. Para isso, é razoável avaliar a razão entre o IPB antes e depois das escovações $\left(\frac{IPB_{depois}}{IPB_{antes}}\right)$ para cada tratamento. Desse modo, quanto menor a razão for, melhor desempenho na redução das placas.
 
 
 ## Análise Descritiva I
@@ -75,17 +74,13 @@ df %>% ggplot(aes(x = Antes, y = Depois)) +
   facet_grid(Dentrificio ~ Escova) + theme_bw()
 ```
 
-De forma exploratório na Fig. \ref{fig:explo1} observamos os gráficos de dispersão para os 4 tratamentos realizados no experimentos, sendo no eixo horizontal o IPB antes da execução da escovação e no eixo vertical depois, como o nosso interesse principal é a razão entre os indíces deve se atentar a inclinação dos pontos ao longo do plano.
+A Figura \ref{fig:explo1} contém gráficos de dispersão para os 4 tratamentos realizados no experimentos, sendo no eixo horizontal o IPB antes da execução da escovação e no eixo vertical depois, cada um acompanhado da reta identidade (em azul). O interesse principal é a razão entre os indíces, portanto, deve-se atentar à inclinação da tendência dos pontos ao longo do plano e, desse modo, a reta identidade denota a situação de nenhuma mudança no IPB após a escovação. Observando esses gráficos, nota-se que todos os pontos se situam abaixo da reta identidade, o que é esperado, visto que o IPB não deveria aumentar após as escovações. Uma sutíl diferença entre os tratamentos pode ser observada comparando com os seus pares na direções verticais e horizontais. Essas diferenças são: disperção levemente maior quando utilizado a escova convencional, como a dispersão está na direção do eixo horizontal isso indica melhores resultados na escovação, o mesmo pode ser observado para o uso do dentríficio mas de forma mais sutíl. 
 
-Observando os gráficos vemos que as variáveis são positivas e com os dados sempre dispersos abaixo da reta de $45^o$, a qual indica o pior caso, quando o indivíduo ao final do experimento estavam com o mesmo IPB que anteriormente, isso é esperado uma criança não ira retornar do experimento com o IPB maior do que no início.
-
-Uma sutíl diferença entre os tratamentos pode ser observadas comparando com os seus pares na direções verticais e horizontais, sendo elas, disperção levemente maior quando utilizado a escova convencional, como a dispersão está na direção do eixo horizontal isso indica melhores resultados na escovação, o mesmo pode ser observado para o uso do dentríficio mas de forma mais sutíl. 
-
-Sabendo dessas características dos dados o mais adequado seria buscar um modelo que conseguisse ajustar variáveis positivas, assimetria e heterocedasticidade.
+Note, ainda pela Figura \ref{fig:explo1}, que a variável resposta é positiva, e que o mais adequado seria buscar um modelo que conseguisse ajustar variáveis positivas, assimetria e heterocedasticidade. Mesmo assim, a fim de se obter algumae vidência estatística em complemento à análise descritiva, serão propostos modelos lineares para a análise da razão do IPB para cada tratamento.
 
 ## Análise Inferencial I
 
-Por motivos didáticos iremos apenas utilizado o modelo linear simples homocedástico, deixando de lado a possível modelagem mais adequada mencionada acima.
+<!-- Por motivos didáticos iremos apenas utilizado o modelo linear simples homocedástico, deixando de lado a possível modelagem mais adequada mencionada acima. -->
 
 A notação para os dados utilizada será:
 
@@ -93,11 +88,11 @@ A notação para os dados utilizada será:
  - $\mathbf x_1$: covariável categorizada, a qual indica o uso de *escova monobloco*; 
  - $\mathbf x_2$: covariável categorizada, a qual indica o não uso de *dentrifício*.
  
-Como nosso objetivo é comparar os tratamentos iremos buscar reduzir o modelo o máximo possível mantendo apenas as covariáveis que apresentem maior efeito à nossa variável de interesse.
+<!-- Como o objetivo é comparar os tratamentos, será buscado um modelo reduzido ao máximo, mantendo apenas as covariáveis que apresentem maior efeito à nossa variável de interesse. -->
 
 ### Modelo 1
 
-Inicialmente ajustamos um modelo utilizando a parametrização de casela de referência (uso da escova convencional e escovação com dentrifício), levando em conta os dois fatores *tipo da escova* e *uso do dentrifício*, modelando as suas médias e a interação entre os mesmos, sendo ele
+Inicialmente, será ajustado um modelo linear simples considerando a interação entre as covaráveis *tipo da escova* e *uso do dentrifício* e utilizando a parametrização de casela de referência (uso da escova convencional e escovação com dentrifício), sendo ele
 
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \beta_3 \mathbf x_1 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -110,13 +105,12 @@ m1 <- lm(Razao ~ Escova * Dentrificio,
 tabela_resultados(m1, "\\label{tab:m1}")
 ```
 
-Observamos na Tabela \ref{tab:m1} que os coeficientes do termo do dentrifício e sua interação com o uso escova monobloco estão com p-valores altos, desta forma podemos tentar reduzir o modelo.
-
-Entre tanto, como o termo de interação e uma de suas covariáveis relacionadas são os maiores termos, o termo da interação será removido inicialmente mesmo que o seu p-valor não seja o maior de todos. Ao remover está covariável está descartando que existe diferença entre os demais tratamentos e o uso de escova monobloco sem o uso de dentríficio.
+A Tabela \ref{tab:m1} apresenta os resultados desse modelo. Nela, se observa que os p-valores associados ao teste que testa a nulidade dos coeficientes dos termos "sem dentrifício" e sua interação com o uso escova monobloco foram não significativos - 0,331 e 0,296, respectivamente, muito maiores que $\alpha=0,05$. Desta forma, é razoável considerar um modelo que não leva em conta a interação das covariáveis, considerando que não existe diferença significativa na redução de IPB pelas escovas provocadas pela presença ou não de dentrifício, e vice-versa.
 
 ### Modelo 2
 
-Sendo assim, é necessário reajustar este novo modelo,
+Sendo assim, um segundo modelo é proposto:
+
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
@@ -128,11 +122,12 @@ m2 <- lm(Razao ~ Escova + Dentrificio,
 tabela_resultados(m2, "\\label{tab:m2}")
 ```
 
-Na Tabela \ref{tab:m2} podemos observar que o coeficiente da covariável do uso de dentrifício continua não sendo significante e será removido, indicando que não observamos diferença com a utilização de dentrifício.
+A Tabela \ref{tab:m2} contém os resultados do ajuste desse modelo. É possível observar que o coeficiente da covariável do uso de dentrifício não foi significante (0,73, muito maior que $\alpha=0,05$), assim como no modelo anterior, e será removido, um indício de que não há diferença com a utilização de dentrifício.
 
 ### Modelo 3
 
-Com essas reduções obtemos,
+A redução proposta anteriormente resusta no modelo
+
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
@@ -150,11 +145,11 @@ tabela_resultados(m3, "\\label{tab:m3}")
 plot_residuals(m3)
 ```
 
-Os resultados da Tabela \ref{tab:m3} indica que apenas temos evidências que somente o **tipo da escova** leva à diferenças significantes na razão $\frac{IPB_{depois}}{IPB_{antes}}$.
+A Tabela \ref{tab:m3} apresenta os resultados desse ajuste. Ela indica que apenas há evidências de que somente o **tipo da escova** leva à diferenças significantes na razão $\frac{IPB_{depois}}{IPB_{antes}}$.
 
-Observando a Fig. \ref{fig:res1} podemos ver que por mais que os coeficientes sejam significativos os resíduos não respeitam as suposições do modelo, em destaque, indicando alguma depêndencia nos dados com indíces mais extremos, no histograma dos resíduos "studentizados" vemos assimetria, e no gráfico seguinte pontos na cauda que não respeitam as bandas de 95% de confiança dos quantis. Indicando que o modelo não está respeitando nossas suposições, mas isso já esperado como mencionado na análise descritiva.
+A Figura \ref{fig:res1} contém quatro gráficos referentes à análise de resíduos do modelo. Nela, é possível observar que, por mais que os coeficientes sejam significativos, os resíduos não respeitam as suposições do modelo: em particular, os dois primeiros gráficos indicam alguma heterocedasticidade e os dois seguintes indicam assimetria e caudas pesadas na distribuição dos erros, visto que os pontos na cauda do qq-plot não respeitam as bandas de confiança dos quantis. Indicando que o modelo não está respeitando as suposições e, portanto, não foi bem ajustado.
 
-Desta forma, concluimos que, apenas temos evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+Desta forma, concluimos que, apenas há evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
 
 ## Análise Descritiva II
 
