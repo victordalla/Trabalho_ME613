@@ -1,0 +1,188 @@
+--- 
+output: 
+  pdf_document:
+    fig_crop: no
+fontsize: 10pt
+documentclass: article
+geometry: 
+ - a4paper
+ - textwidth=18cm
+ - textheight=21cm
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+  - \usepackage{booktabs}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center", fig.height = 3, fig.width = 5 
+  )
+options(
+  OutDec = ",", 
+  digits = 3,  
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r libs}
+library(minpack.lm)
+library(magrittr)
+library(ggplot2)
+library(knitr)
+library(broom)
+source("plot_functions.R")
+source("tabela_resultados.R")
+```
+
+```{r}
+df <- read.table("coelhos.txt")
+colnames(df) <- c("idade", "peso")
+```
+
+```{r}
+plot_nls_residuals <- function(model, binwidth = NULL, bins = NULL) {
+  # precisa de ggplot2, gridExtra, qqplotr
+  residuals <- data.frame(
+    residual = residuals(model), 
+    fitted = fitted(model), 
+    index = 1:length(fitted(model))
+  )
+  
+  p <- ggplot2::ggplot(residuals) + 
+    ggplot2::labs(y = "resíduo") + ggplot2::theme_classic()
+  
+  gridExtra::grid.arrange(
+    nrow = 2, 
+    p + ggplot2::geom_point(aes(x = index, y = residual), col = "gray30", alpha = 0.80) + 
+      ggplot2::labs(x = "índice"), 
+    p + ggplot2::geom_point(aes(x = fitted, y = residual), col = "gray30", alpha = 0.80) + 
+      ggplot2::labs(x = "predito"), 
+    p + ggplot2::geom_histogram(
+      aes(x = residual), fill = "gray30", col = "gray80",
+      binwidth = binwidth, bins = bins
+      ) + ggplot2::labs(x = "resíduo", y = ""), 
+    ggplot2::ggplot(residuals, aes(sample = residual)) + 
+      qqplotr::stat_qq_band(bandType = "pointwise") + 
+      qqplotr::stat_qq_line() + 
+      qqplotr::stat_qq_point(col = "gray20", alpha = 0.80) + 
+      ggplot2::labs(x = "quantil teórico", y = "quantil amostral") + ggplot2::theme_classic()
+  )
+}
+```
+
+# Questão 9
+
+## Introdução
+
+Os dados correspondem a uma amostra de 71 coelhos da espécia *Oryctolagus Cuniculuse*, onde foram registradas suas idade (em dias) e o peso (em mg) de sua lente ocular seca. O objetivo nesta análise, é explicar o peso da lente em função da idade dos indivíduos. Os dados podem ser encontrados em ("https://www.ime.unicamp.br/~cnaber/Ratkowsky.dat") com o nome de "coelhos.dat". 
+
+A notação utilizada será:
+  - $\mathbf Y$: a variável resposta, peso;
+  - $\mathbf x$: covariável, idade. 
+
+## Análise Descritiva
+
+Neste caso, temos apenas uma cováviavél, então através do gráfico de dispersão, analisaremos o como o comportamento da idade do coelho afeita no peso da lente ocular seca. Inicialmente através da Figura \ref{fig:explo} podemos ver que a relação entre as váriaveis não é linear e que a dispersão dos dados aumenta conforme os coelhos envelhecem, o que é esperado, uma vez que cada indivíduo se desenvolve de forma diferente, com o passar do tempo as diferenças no volume e massa dos seus orgãos vão aumentendo.
+
+```{r fig.cap="\\label{fig:explo}Peso da lente ocular dos coelhos em função da sua idade em dias."}
+df %>% ggplot(aes(idade, peso)) + geom_point() +
+  theme_bw()
+```
+
+## Análise Inferencial
+
+# Modelo Linear 1
+
+Através da Figura \ref{fig:explo}, é visível que a estrutura não é linear, e desta forma podemos iniciar nossa modelagem utilizando a regressão linear com polinômio de segundo grau, verificando se os dados seguem uma parábola.
+
+$$
+Y_i = \beta_0 + \beta_1  x_i + \beta_2 x_i ^ 2 + \epsilon_i \quad \text{onde} \quad \epsilon_i \sim N(0,sigma^2)
+$$
+- $Y_i$ é o peso da lente ocular seca esperado para o coelho $i$.
+- $x_i$ é a idade observada do coelho $i$.
+- $\beta_0$ é o peso da lente esperado para um coelho recém nascido.
+- $- \frac{\beta_2}{2\beta_1}$ é a idade que retorna o maior(ou menor) peso da lente de um coelho.
+
+```{r}
+m1 <- lm(peso ~ poly(idade, 2, raw = T), data = df)
+# sum <- summary(m1)
+# tab1 <- sum$coefficients
+# names(tab1) <- c("Estimativa", "EP", "Estat-t", "p-valor")
+tabela_resultados(m1, "\\label{tab:m1}")
+```
+
+
+O Modelo Quadrático foi ajustado via Mínimos Quadrados Ordinários, e a Tabela \ref{tab:m1} apresenta os resultados do ajuste do Modelo 1: termos do modelo (Termo), estimativas pontuais (Estimativa), erros
+padrão (EP), p-valores (p-valor) intervalos de confiança ([Inf.; Sup.]), de onde conclui-se que os parâmetros são todos significativos, e portanto não é necessário remover algum parâmetro.
+Entretanto, pela Figura \ref{fig:m1} é possível ver que o Modelo Quadrático não capta bem os dados, e os pontos de dispersão estão fora do intervalo de predição da curva. Uma possível causa do modelo não ser adequado, é devido a estrutura da parábola, que espera que os valores decrescam, o que não acontece com o peso das corneas em função da idade, que só tende a aumentar conforme a idade aumenta.
+
+
+```{r fig.cap="\\label{fig:m1}Curva do modelo 1 ajustado."}
+df %>% ggplot(aes(idade, peso)) +
+  geom_point() + 
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2, raw = T), se = T) +
+  theme_bw()
+```
+
+Com a análise residual apresentada na Figura \ref{fig:resm1}, percemos a presença de heterocedastidade (pelo gráfico de valores ajustados x resíduo studentizado) pois a variabilidade dos dados tende a aumentar até certo ponto, com o aumento do valor predito, e após certo ponto, tende a diminuir; e presença de dependência pelo gráfico de índice x resíduo studentizado. Através do histograma e do gráfico de envelopes, o resíduo parece simétrico, e aparenta ter uma distribuição normal, devido aos pontos estarem dentro das bandas de confiança. Assim, o resíduo pode vir a ter uma distribuição Normal. Porém, as suposições do modelo não estão sendo satisfeitas, uma vez que os resíduos não são independentes e nem homocedásticos, pois não apresentam variância constante. 
+ 
+```{r fig.cap="\\label{fig:resm1}Gráficos para diagnóstico dos resíduos do modelo 1"}
+plot_residuals(m1)
+```
+
+Como visto que um Modelo Linear Quadrático não é viavél para os dados, iremos ajustar um modelo não linear, com alguma função que se aproxime da estrutura dos dados. Dado que as variáveis são positivas, faz sentido usarmos um modelo em que as suposições sejam de variaveis positivas. Uma alterativa para solucionar o problema vem a ser adotar modelos não lineares. 
+
+# Modelo Não Linear 
+
+Uma alternativa, é analisarmos a capacidade do seguinte modelo ajustar os dados:
+
+$$
+Y_i = \beta_0  + \beta_1 \exp (\beta_2 / x_i) + \epsilon_i \quad \text{onde} \quad \epsilon_i \sim N(0, \sigma^2)
+$$
+
+```{r}
+m3 <- nlsLM(peso ~ beta0 + beta1 * exp (beta2/idade), start = c(beta0 = 1, beta1 = 1, beta2 = 1), data = df)
+tabela_resultados(m3, "\\label{tab:m3}")
+```
+
+E através da análise inferencial, pela Tabela \ref{tab:m3}, temos p-valores muito pequenos associados aos parâmetros do modelo, logo a covariável idade aparenta ser significativa, e o intercepto tem significância.
+
+Ajustando a curva referente ao Modelo Não Linear acima, é visível pela Figura \ref{fig:m3} que ela capta os pontos melhor em relação a um polinômio linear referente ao MRLH, aparentando ser mais adequada para descrever os dados. Com o propósito de verificar o ajuste do modelo, através da análise de resíduos, na Figura \ref{fig:resm3} apresentamos 4 gráficos, em que através gráfico de valores preditos x resíduo, o problema da heterocedasticidade aparenta ter melhorado em relação ao Modelo Quadrático, pois há menos variabilidade dos pontos, e observando o histograma e o gráfico de envelopes, a distribuição dos erros pode vir a ser uma distribuição Normal, como a suposição feita. Note que neste caso, o resíduo não é mais o resíduo studentizado utilizado no MRLH anteriormente.
+
+
+```{r fig.cap="\\label{fig:m3}Gráficos da curva do modelo 3"}
+df %>% ggplot(aes(idade, peso)) +
+  geom_point() +
+  geom_line(aes(idade, fitted(m3), col = "red")) +
+  theme_bw()
+```
+
+
+```{r fig.cap="\\label{fig:resm3}Gráficos para diagnóstico dos resíduos do modelo 3"}
+plot_nls_residuals(m3)
+```
+
+```{r}
+m1.estat <- c(AIC(m1), BIC(m1))
+m3.estat <- c(AIC(m3), BIC(m3))
+estat <- as.data.frame(rbind(m1.estat, m3.estat))
+names(estat) <- c("AIC", "BIC")
+row.names(estat) <- c("Quadrático", "Não Linear")
+COLOCA NOME NESSA TABELA AQUIIIIIIIII
+```
+
+A Tabela \ref{bla} apresenta as estatísticas de comparação AIC e BIC, aplicadas no Modelo Não Linear e no Modelo Quadrático, e a partir destas, é possível concluir que o Modelo Não Linear se apresenta mais adequado para ajustar os dados ao Modelo Quadrático.
+
+
+
+##Conclusão
+
+A partir da dispersão dos dados, foi ajustado inicialmente um Modelo Linear Homocedástico com polinômio de segundo grau, porém as suposições necessárias para o modelo não foram satisfeitas, e este apresentou um mal ajuste. Com o fato da variável resposta ser sempre positiva, pois representa o peso da lente ocular dos coelhos, ajustou-se um Modelo Não Linear, o qual se apresentou melhor em relação ao Modelo Quadrático referente a qualidade do ajuste, a análise de resíduos, e as estatísticas de comparação de modelos. 
