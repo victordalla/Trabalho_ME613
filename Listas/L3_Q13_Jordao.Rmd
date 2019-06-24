@@ -26,7 +26,7 @@ knitr::opts_chunk$set(
 options(
   OutDec = ",", 
   digits = 3, 
-  # knitr.table.format = "latex", 
+  knitr.table.format = "latex",
   xtable.comment = FALSE
   )
 ```
@@ -40,6 +40,7 @@ library(ggplot2)
 library(dplyr)
 library(broom)
 source("plot_functions.R")
+source("tabela_resultados.R")
 ```
 
 ```{r 12/13-import, echo=FALSE}
@@ -59,28 +60,45 @@ df <- df %>% transmute(Individuo = X1,
 
 ## Introdução
 
-Com o objetivo de comparar a eficácia entre escovas de dentes comuns e escovas de dentes do tipo monobloco com e sem o uso de dentrifício (pasta de dente) avaliamos a razão entre duas variáveis, o Indíce de Placa Bacteriana (IPB) antes e depois da escovações com as condições citadas anteriormente. Desta forma sendo nossa variável resposta $\frac{IPB_{depois}}{IPB_{antes}}$, quanto menor este valor, melhor desempenho na redução das placas.
+Os dados são referentes a um estudo realizado na área de Odontopediatria realizado na Faculdade de Odontologia da Universidade de São Paulo, pelos pesquisadores Célia Regina Rodrigues e Symonne Parizotto, os quais, contém os valores correspondentes ao Indíce de Placa Bacteriana (IPB) medidos nos dentes, pré-molares e molares, antes e depois da escovação dental de 32 crianças entre 4 e 6 anos de idade, sob 4 tratamento, escova convencional com dentrifício, escova convencional sem dentrifício, escova monobloco com dentrifício, escova monobloco sem dentrifício.
+O conjunto inicial dos indivíduos foi dividido em 4 subgrupos de 8 membros, onde a orde de aplicação dos tratamentos foram diferentes e para evitar efeitos residuais cada tratamento teve um espaçamento de uma semana.
 
-Portanto, iremos utilizar da notação:
-- $\mathbf Y$: a variável resposta, razão entre os indíces, $\frac{IPB_{depois}}{IPB_{antes}}$;
-- $\mathbf x_1$: covariável categorizada, a qual indica o uso de *escova monobloco*; 
-- $\mathbf x_2$: covariável categorizada, a qual indica o não uso de *dentrifício*.
+Sendo assim, o objetivo desta análise é comparar a eficácia entre escovas de dentes comuns e escovas de dentes do tipo monobloco com e sem o uso de dentrifício (pasta de dente), para isso avaliamos a razão entre duas variáveis, IPB antes e depois das escovações com as condições citadas anteriormente. Desta forma, temos nossa variável resposta $\frac{IPB_{depois}}{IPB_{antes}}$, a qual, quanto menor ela for, melhor desempenho na redução das placas.
 
-## Análise descritiva I
 
-```{r 12-explore, fig.cap="\\label{fig:explo1}Gráfico da relação entre o IPB antes e depois da escovação.", }
+## Análise Descritiva I
+
+
+```{r 12-explore, fig.cap="\\label{fig:explo1}Gráfico da relação entre o IPB antes e depois da escovação para cada tratamento, com retas (em azul) de 45 graus saindo da origem."}
 df %>% ggplot(aes(x = Antes, y = Depois)) +
-  geom_point() +
+  geom_point() + geom_abline(intercept = 0, slope = 1, col = "blue") + 
   facet_grid(Dentrificio ~ Escova) + theme_bw()
 ```
 
-De forma exploratório observamos na Fig. \ref{fig:explo1} que as 4 retas são muito similares, lembrando que o valor de interesse é coeficiente de inclinação das mesmas.
+De forma exploratório na Fig. \ref{fig:explo1} observamos os gráficos de dispersão para os 4 tratamentos realizados no experimentos, sendo no eixo horizontal o IPB antes da execução da escovação e no eixo vertical depois, como o nosso interesse principal é a razão entre os indíces deve se atentar a inclinação dos pontos ao longo do plano.
 
-## Modelagem I
+Observando os gráficos vemos que as variáveis são positivas e com os dados sempre dispersos abaixo da reta de $45^o$, a qual indica o pior caso, quando o indivíduo ao final do experimento estavam com o mesmo IPB que anteriormente, isso é esperado uma criança não ira retornar do experimento com o IPB maior do que no início.
+
+Uma sutíl diferença entre os tratamentos pode ser observadas comparando com os seus pares na direções verticais e horizontais, sendo elas, disperção levemente maior quando utilizado a escova convencional, como a dispersão está na direção do eixo horizontal isso indica melhores resultados na escovação, o mesmo pode ser observado para o uso do dentríficio mas de forma mais sutíl. 
+
+Sabendo dessas características dos dados o mais adequado seria buscar um modelo que conseguisse ajustar variáveis positivas, assimetria e heterocedasticidade.
+
+## Análise Inferencial I
+
+Por motivos didáticos iremos apenas utilizado o modelo linear simples homocedástico, deixando de lado a possível modelagem mais adequada mencionada acima.
+
+A notação para os dados utilizada será:
+
+ - $\mathbf Y$: a variável resposta, razão entre os indíces, $\frac{IPB_{depois}}{IPB_{antes}}$;
+ - $\mathbf x_1$: covariável categorizada, a qual indica o uso de *escova monobloco*; 
+ - $\mathbf x_2$: covariável categorizada, a qual indica o não uso de *dentrifício*.
+ 
+Como nosso objetivo é comparar os tratamentos iremos buscar reduzir o modelo o máximo possível mantendo apenas as covariáveis que apresentem maior efeito à nossa variável de interesse.
 
 ### Modelo 1
 
-Inicialmente ajustamos um modelo levando em conta os dois fatores *tipo da escova* e *uso do dentrifício* e suas interações, sendo ele
+Inicialmente ajustamos um modelo utilizando a parametrização de casela de referência (uso da escova convencional e escovação com dentrifício), levando em conta os dois fatores *tipo da escova* e *uso do dentrifício*, modelando as suas médias e a interação entre os mesmos, sendo ele
+
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \beta_3 \mathbf x_1 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
@@ -89,17 +107,16 @@ $$
 m1 <- lm(Razao ~ Escova * Dentrificio,
          data = df)
 
-m1 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m1}")
+tabela_resultados(m1, "\\label{tab:m1}")
 ```
 
-Observamos em Tab. \ref{tab:m1} que os coeficientes dos termos do *dentrifício* e sua interação com o uso *escova monobloco*  estão com p-valores altos, desta forma podemos tentar reduzir o modelo.
+Observamos na Tabela \ref{tab:m1} que os coeficientes do termo do dentrifício e sua interação com o uso escova monobloco estão com p-valores altos, desta forma podemos tentar reduzir o modelo.
 
-Entre tanto, como o termo de interação e uma de suas covariáveis relacionadas são os maiores termos, o termo da interação será removido anteriormente mesmo que o seu p-valor não seja o maior de todos.
+Entre tanto, como o termo de interação e uma de suas covariáveis relacionadas são os maiores termos, o termo da interação será removido inicialmente mesmo que o seu p-valor não seja o maior de todos. Ao remover está covariável está descartando que existe diferença entre os demais tratamentos e o uso de escova monobloco sem o uso de dentríficio.
 
 ### Modelo 2
 
-Sendo assim, o novo modelo a ser ajustado é:
+Sendo assim, é necessário reajustar este novo modelo,
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
@@ -108,56 +125,61 @@ $$
 m2 <- lm(Razao ~ Escova + Dentrificio,
          data = df)
 
-m2 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m2}")
+tabela_resultados(m2, "\\label{tab:m2}")
 ```
 
-O coeficiente da covariável do uso de *dentrifício* continua não sendo significante e será removido, Tab. \ref{tab:m2}.
+Na Tabela \ref{tab:m2} podemos observar que o coeficiente da covariável do uso de dentrifício continua não sendo significante e será removido, indicando que não observamos diferença com a utilização de dentrifício.
 
 ### Modelo 3
 
-Desta forma, novo modelo é:
+Com essas reduções obtemos,
 $$
 \mathbf Y = \beta_0 + \beta1 \mathbf x_1 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
 $$
+o qual, distingue apenas a média das razões $\frac{IPB_{depois}}{IPB_{antes}}$ entre as escovas convencionais e monobloco.
 
 ```{r}
 m3 <- lm(Razao ~ Escova,
          data = df)
 stt <- summary(m3)
 
-m3 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m3}")
+tabela_resultados(m3, "\\label{tab:m3}")
 ```
 
 ```{r fig.cap="\\label{fig:res1}Gráficos para diagnóstico dos resíduos."}
 plot_residuals(m3)
 ```
 
-Neste modelo reduzido temos evidências que apenas o *tipo da escova* leva à diferenças significantes na razão $\frac{IPB_{depois}}{IPB_{antes}}$, Tab. \ref{tab:m3}. Observando Fig. \ref{fig:res1} podemos ver que por mais que os coeficientes sejam significativos os resíduos não respeitam as suposições do modelo, em destaque, vemos que o gráfico de resíduo "studentizado" não se assemelha a uma distribuição normal e os pontos da cauda não respeitam as bandas do quantil teórico.
+Os resultados da Tabela \ref{tab:m3} indica que apenas temos evidências que somente o **tipo da escova** leva à diferenças significantes na razão $\frac{IPB_{depois}}{IPB_{antes}}$.
 
-Podemos concluir que, apenas temos evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+Observando a Fig. \ref{fig:res1} podemos ver que por mais que os coeficientes sejam significativos os resíduos não respeitam as suposições do modelo, em destaque, indicando alguma depêndencia nos dados com indíces mais extremos, no histograma dos resíduos "studentizados" vemos assimetria, e no gráfico seguinte pontos na cauda que não respeitam as bandas de 95% de confiança dos quantis. Indicando que o modelo não está respeitando nossas suposições, mas isso já esperado como mencionado na análise descritiva.
 
-## Análise descritiva II
+Desta forma, concluimos que, apenas temos evidências de que o uso das escovas convencionais leva a uma redução de `r m3$coefficients[1]` $\pm$ `r stt$coefficients[3]` da placa bacteriana e uso da escova monobloco `r m3$coefficients[1] + m3$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
 
-Buscando responder as mesmas perguntas, definimos uma nova variável de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$, onde o melhor resultado para escovação ocorre quando essa medida é mínima, sendo ela zero quando não ouve mudança ao realizar o experimento.
+## Análise Descritiva II
 
-Será utilizado uma nova variável:
-  - $\mathbf Y_c$: a variável resposta de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$;
+Buscando responder as mesmas perguntas, definimos uma nova variável de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$, a motivação para o uso desta nova variável é que levamos em conta a maior redução no IPB, $IPB_{depois} - IPB_{antes}$, quanto menor melhor, levando em conta a magnetude do $IPB$ ao início de cada tratamento, no termo $\frac{1}{IPB_{antes}}$ que realiza uma mudança na escala de cada ponto individualmente.
 
-```{r fig.cap="\\label{fig:explo2}Gráfio da relação entre o denominador e o numerador da nova variável resposta"}
+Desta forma, será introduzido uma nova variável:
+
+ - $\mathbf Y_c$: a variável resposta de interesse, $\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}}$;
+
+
+```{r fig.cap="\\label{fig:explo2}Gráfico da relação entre o IPB antes e depois da escovação para cada tratamento, com retas (em azul) de 45 graus para baixo, saindo da origem."}
 df %>% ggplot(aes(x = Antes, y = Depois - Antes)) +
-  geom_point() +
+  geom_point() + geom_abline(intercept = 0, slope = -1, col = "blue") + 
   facet_grid(Dentrificio ~ Escova) + theme_bw()
 ```
 
-Na Fig. \ref{fig:explo2} a mudança na interpretação dos coeficientes ficam claras, pois a inclicação das amostras é alterada.
+Como está alteração é apenas uma alteração na localização da variável resposta, a interpretação da Figura \ref{fig:explo2} é similar, porém deve-se notar que os casos onde houve menor desempenho na escovação agora são os dados mais próximos do eixo horizontal, pois nestes casos $IPB_{depois} - IPB_{antes} = 0$ e os pontos na reta azul são os que obtiveram total remoção das placas bacterianas.
 
-## Modelagem II
+Note que, os dados agora são de valores negativos e com uma quantidade razoável próxima ao zero, levando isso em conta já seria interessante buscar metodologias além do modelo linear homocedastico simples.
+
+## Análise Inferencial I
 
 ### Modelo 4
 
-Iniciamos a modelagem com o modelo completo, levando em contas as mesmas cováriaveis que no modelo 1 e a interação entre elas.
+Novamente, iniciamos a modelagem com o modelo completo, levando em contas as mesmas cováriaveis que no modelo 1 e a interação entre as mesmas.
 
 $$
 \mathbf Y_c = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \beta_3 \mathbf x_1 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -166,8 +188,7 @@ $$
 ```{r}
 m4 <- lm(Centrada ~ Escova * Dentrificio,
          data = df)
-m4 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m4}")
+tabela_resultados(m4, "\\label{tab:m4}")
 ```
 
 Podemos notar que os valores ajustados dos coeficientes são os mesmos, exceto no intercepto, esse é um comportamento esperado, uma vez que houve apenas uma mudança na localização da variável resposta.
@@ -176,7 +197,7 @@ Como no caso anterior observamos que a presença de *dentrifício* não é signi
 
 ### Modelo 5
 
-Este é o novo modelo a ser ajustado.
+Sendo assim, é necessário reajustar este novo modelo,
 
 $$
 \mathbf Y_c = \beta_0 + \beta1 \mathbf x_1 + \beta_2 \mathbf x_2 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -185,15 +206,14 @@ $$
 ```{r}
 m5 <- lm(Centrada ~ Escova + Dentrificio,
          data = df)
-m5 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m5}")
+tabela_resultados(m5, "\\label{tab:m5}")
 ```
 
 O novo ajuste não apresenta melhora na significância no fator do *dentrifício*.
 
 ### Modelo 6
 
-Um novo modelo é ajustado, semelhante ao modelo 3.
+Com essas reduções obtemos, o qual é semelhante com o Modelo 3,
 
 $$
 \mathbf Y_c = \beta_0 + \beta1 \mathbf x_1 + \epsilon \quad \text{onde} \quad \epsilon \sim N(0, I\sigma^2)
@@ -203,8 +223,7 @@ m6 <- lm(Centrada ~ Escova,
          data = df)
 stt <- summary(m6)
 
-m6 %>% tidy(conf.int = T) %>%
-  kable(caption = "\\label{tab:m6}")
+tabela_resultados(m6, "\\label{tab:m6}")
 ```
 
 Podemos observar que os coeficientes restantes são significativos, e os resíduos, Fig \ref{fig:res2} são equivalentes ao apresenteados pelo modelo 3, não respeitando as suposições feitas pelo modelo.
@@ -213,8 +232,15 @@ Podemos observar que os coeficientes restantes são significativos, e os resídu
 plot_residuals(m6)
 ```
 
-Desta forma, concluímos que que o uso das escovas convencionais reduzem `r m6$coefficients[1]` $\pm$ `r stt$coefficients[3]` em média o IPB encontrado antes da escovação e uso da escova monobloco `r m6$coefficients[1] + m6$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores.
+Note que,
+$$
+\frac{IPB_{depois} - IPB_{antes}}{IPB_{antes}} = \frac{IPB_{depois}}{IPB_{antes}} - 1
+$$
+
+Uma vez que todas modelagens propostas neste relatório alteram os valores do coeficiente $beta_0$ com as mudanças de localização, isso explica que na mudança da variável resposta resultou uma deslocação de um nos $beta_0$ de todos modelos ajustados na Análise Inferencial II, a casela de referência.
+
+Desta forma, concluímos que que o uso das escovas convencionais reduzem `r m6$coefficients[1]` $\pm$ `r stt$coefficients[3]` em média o IPB encontrado antes da escovação e uso da escova monobloco `r m6$coefficients[1] + m6$coefficients[2]` $\pm$ `r stt$coefficients[3] + stt$coefficients[4]`, desta forma, as escovas convencionais se mostram superiores, como visto anteriormente.
 
 Podemos concluir que o deslocamento na posição da variável de interesse não resulto em diferenças nas conclusões das análises
 
-Para um estudo mais aprofundado para relação da razão do $IPB_{depois}$ sobre o $IPB_{antes}$ um modelo multiplicativo poderia ser mais adequado modelando o $IPB_{depois}$ em função dos fatores e do $IPB_antes$.
+Para um estudo mais aprofundado para relação da razão do $IPB_{depois}$ sobre o $IPB_{antes}$ um modelo multiplicativo poderia ser mais adequado modelando o $IPB_{depois}$ em função dos fatores e do $IPB_antes$, assim não seria modelado apenas a média dos efeitos dos tratamento. E também o mais adequado seria procurar uma modelagem onde as suposições fosse de acordo com as características do dados, como mencionado na Análise Descritiva I.
