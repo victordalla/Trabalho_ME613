@@ -1,0 +1,158 @@
+---
+output: 
+  pdf_document:
+    fig_crop: no
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center", fig.height = 3, fig.width = 5
+  )
+options(
+  OutDec = ",", 
+  digits = 3, 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r lib}
+library(dplyr)
+library(ggplot2)
+library(forcats)
+library(magrittr)
+library(broom)
+source("plot_functions.R")
+source("tabela_resultados.R")
+source("test_functions.R")
+```
+
+```{r import, echo=FALSE}
+df <- read.table(
+  "../Dados/Braga1998PCR.txt", 
+  header = FALSE, 
+  col.names = c("etiologia", "carga", "VO2"))
+```
+
+# Questão 3
+
+## Introdução
+
+O conjunto de dados é referente a um estudo sobre teste de esforço cardiopulmonar em pacientes com insufiência cardíaca realizado no InCor da Faculdade de Medicina da USP. O objetivo é comparar os grupos formados pelas diferentes etiologias cardíacas analisando a variação do consumo de oxigênio (VO2) no limiar anaeróbico (em ml/(kg$\times$min)) em função da carga utilizada na esteira ergométrica (abreviada como carga) para para pacientes com diferentes etiologias cardíacas: CH - chagásicos, ID - idiopáticos, IS - isquêmicos, C - controle. Para isso, serão ajustados modelos lineares e seus coeficientes analisados, sob um nível de significância de $\alpha=0,05$.
+
+## Análise descritiva
+
+Na Figura \ref{fig:boxplot} estão os boxplots do consumo de oxigênio (VO2) para cada etiologia. Ela indica que o consumo de oxigênio da etiologia "C" é em média maior que o VO2 das demais etiologias enquanto que o consumo de oxigênio médio da etiologia "IS" é em média menor que o consumo das restantes. Apesar de o consumo de oxigênio ter distribuição diferente para cada etiologia segundo esses boxplots (\ref{fig:boxplot}), essa diferença não é forte e não é possível concluir, apenas da através da análise descritiva, que o consumo de oxigênio médio é diferente para as etiologias.
+
+Na Figura \ref{fig:dispersao}, temos os gráficos de dispersão do consumo de oxigênio (VO2) para cada etiologia cardíaca. Pode-se perceber que a relação entre a carga submetida e o consumo de oxigênio é positiva, e é razoável ser representada por uma reta.
+
+```{r, fig.cap="Boxplot do consumo de oxigênio (VO2) para cada etiologia.\\label{fig:boxplot}"}
+ggplot(df, aes(etiologia, VO2)) + 
+  geom_boxplot() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_classic()
+```
+
+```{r, fig.cap="Gráfico de dispersão do consumo de oxigênio (VO2) em função da carga utilizada na esteira para cada etiologia.\\label{fig:dispersao}"}
+ggplot(df, aes(carga, VO2)) + 
+  geom_point(col = "gray20", alpha = 0.8) + 
+    facet_wrap(~ etiologia) +
+      theme_bw()
+```
+
+## Análise inferencial
+
+### Modelos
+
+Sejam $j = 1, 2, 3, 4$ índices para as etiologias "C", "CH", "ID e "IS", respectivamente. 
+
+O modelo que explica o consumo de oxigênio (VO2) em função da carga e que considera as etiologias, com interação entre carga e etiologia, é $Y_{i j} = \beta_{0 j} + \beta_{1 j} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, que será chamado de Modelo 2, onde
+
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1 j}$ é a variação esperada de VO2 quando a carga varia em uma unidade e a etiologia assume o valor associado ao índice $j$
+
+Uma hipótese de interesse do problema é testar se há diferenças nos efeitos das etiologias no consumo de oxigênio, ou seja, $H_0: \beta_{0 1} = ... = \beta_{0 4}$ \textit{versus} $H_1: \beta_{0 j} \neq \beta_{0 k}$ para algum algum par $j \neq k$. No Modelo 1, é importante testar se os efeitos da carga no VO2 são iguais para todas as etiologias: $H_0: \beta_{1 1} = ... = \beta_{1 4} = 0$ \textit{versus} $H_1: \text{para algum algum} \ j \ \text{tal que} \ \beta_{1 j} \neq 0$, ou seja, se é possível reduzir o modelo desconsiderando a interação entre carga e etiologia.
+
+Nesse caso, o modelo que explica o consumo de oxigênio (VO2) em função da carga, considerando as etiologias de maneita aditiva (sem interações) é o Modelo 2: $Y_{i j} = \beta_{0 j} + \beta_{1} (x_{i j} - \bar{x}) + \epsilon_{i j}, \epsilon_{i j} \stackrel{iid}\sim N(0, \sigma^2)$, onde
+
+- $Y_{i j}$ e $x_{i j}$ é o VO2 e a carga do i-ésimo indivíduo da j-ésima etiologia, respectivamente.
+- $\beta_{0 j}$ é o VO2 esperado quando a carga assume seu valor médio e a etiologia assume o valor associado ao índice $j$
+- $\beta_{1}$ é a variação esperada de VO2 quando a carga varia em uma unidade 
+
+
+### Resultados
+
+```{r}
+modelo_etiologia <- df %$%
+  lm(VO2 ~ etiologia * I(carga - mean(carga)))
+
+tabela_resultados(modelo_etiologia, "\\label{tab:modelo1}Resultados do Modelo 1.")
+```
+
+A Tabela \ref{tab:modelo1} apresenta os resultados do ajuste do Modelo 1 com a parametrização de casela de referência (etiologia "C"): termos do modelo (Termo), estimativas pontuais (Estimativa), erros padrão (EP), p-valores (p-valor) e intervalos de confiança ([Inf.; Sup.]). Todos os p-valores associados aos parâmetros de interação não foram significativos, ou seja, foram maiores que $\alpha$.
+
+Isso indica que é mais razoável considerar o Modelo 2 para a análise, ou seja, desconsiderar as interações. A Tabela \ref{tab:modelo2} apresenta os resultados desse modelo. Nota-se que o coeficiente associado à carga é positivo, o que confirma a crença inicial, através da análise de dados, de que há uma relação positiva entre carga e consumo de oxigênio.
+
+A Figura \ref{fig:pred} apresenta o gráfico do VO2 em função da carga, a reta ajustada no Modelo 2 e o intervalo de confiança para as predições a 95\% (área em torno da reta). Poucos pontos ficam fora do intervalo de predição - a maior parte acompanha bem a reta.
+
+A Figura \ref{fig:resid} apresenta os gráficos de análise de resíduos do Modelo 2: o primeiro gráfico não sugere qualquer anormalidade, como dependência; o segundo indica heterocedasticidade; o terceiro indica que pode ser razoável a normalidade, no entanto, o quarto gráfico demonstra não ser possível tal suposição, visto que o QQ-plot tem concavidade para cima e granda parte da cauda positiva fora da banda de confiança.
+
+Portanto, é preciso um modelo mais adequado para esta análise. Uma sugestão é o uso de uma distribuição contínua com suporte postivo (e.g. Gama) que descreva melhor a variável resposta (variação no consumo de oxigênio), que possa ser modelada através de Modelos Lineares Generalizados.
+
+```{r, fig.cap="Gráfico da predição \textit{versus} VO2 observado. A reta é a reta ajustado pelo Modelo 2. A banda ao redor da reta é o intervalo de confiança para as predições a 95\\%.\\label{fig:pred}"}
+plot_prediction(modelo_etiologia, df$VO2, "VO2")  
+```
+
+```{r, fig.cap="Análise dos resíduos (studentizados) do Modelo 2.\\label{fig:resid}"}
+plot_residuals(modelo_etiologia)
+```
+
+Mesmo assim, uma análise inferencial pelo Modelo 2 pode ser relevante para um entendimento geral do prbolema em questão. A Tabela \ref{tab:anova} contém os resultados da ANOVA calculada pelo Modelo 2. Seus resultados revelam que existem diferenças na variação média de consumo de oxigênio entre as etiologias, assim como foi conjecturado na análise descritiva (Figura \ref{fig:boxplot}).
+
+A Figura \ref{fig:tuckey} apresenta os resultados das Diferenças Significantes Honestas de Tukey (Tukey HSD, em inglês). O Tukey HSD a um nível de confiança de 95\% (0,05 de significância) calcula um intervalo de confiança para cada par de níveis de um fator (etiologias) de tal maneira que, em conjunto, os testes associados a eles tenham 0,05\% de significância.
+
+Os resultados do gráfico contido na Figura \ref{fig:tukey} revelam que, com exceção da diferença "ID-IS", existem diferenças na variação média de consumo de oxigênio entre as etiologias, concordando com os resultados da ANOVA, portanto. Isso porque para essas diferenças o intervalo de confiança não contém o zero. Para a diferença "ID-IS", o intervalo contém o zero, e, portanto, não é possível concluir que existe diferença na variação média de consumo de oxigênio. Ainda pela Figura \ref{fig:tukey}, é possível concluir que existe a seguinte orem segundo a variação média de consumo de oxigênio: "IS = ID > CH > C", em que "IS = ID" significa que a variação média de consumo de oxigênio é igual para essas etiologias e ">" tem significado análogo.
+
+```{r}
+modelo_etiologia <- df %$%
+  lm(VO2 ~ etiologia + I(carga - mean(carga)))
+
+tabela_resultados(modelo_etiologia, "\\label{tab:modelo2}Resultados do Modelo 2.")
+```
+
+```{r}
+ANOVA <- aov(modelo_etiologia)
+tidy(ANOVA) %>% slice(c(1, 3)) %>% 
+    mutate(p.value = format.pval(p.value, eps = 0.001, digits = 2)) %>% 
+    knitr::kable(
+      caption = "\\label{tab:anova}Tabela ANOVA para o Modelo 2.",
+      col.names = c("Termo", "GL", "SQ", "SQM", "Estatística", "p-valor"),
+      booktabs = T
+      )
+```
+
+```{r, fig.cap="\\label{fig:tukey}Comparações do VO2 médio das etiologias através do Tukey HSD."}
+TukeyHSD(ANOVA, "etiologia") %>% tidy() %>% 
+  ggplot(aes(fct_reorder(comparison, estimate))) + 
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high)) + 
+  geom_hline(yintercept = 0, linetype = "dotted") + 
+  labs(x = "Comparação") + 
+  coord_flip() + theme_bw()
+```
+
+
+## Conclusão
+
+Apesar de o modelo proposto para a análise (Modelo 2) não ter sido adequado, há evidências (descritivas e inferenciais) de que existe uma relação positiva entre a carga utilizada na esteira ergométrica e variação consumo de oxigênio no limiar anaeróbico. As estimativas do Modelo 2 indicam que uma variação em 1 unidade na carga utilizada na esteira ergométrica resulta incremento médio de 0,102 (IC(95\%)=[0,086; 0,118]) ml/(kg$\times$min) no consumo de oxigênio no limiar anaeróbico. Além disso, através do Tukey HSD, pode-se concluir que consumo médio de oxigênio no limiar anaeróbico é semelhante para as etiologias chagásicos e idiopáticos, que por sua vez têm consumo médio maior que os isquêmicos e este maior que o controle.
+
