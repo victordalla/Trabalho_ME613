@@ -36,6 +36,8 @@ options(
 library(aod)
 library(dplyr)
 library(ggplot2)
+library(xtable)
+source("test_functions.R")
 ```
 
 
@@ -43,9 +45,16 @@ library(ggplot2)
 
 ## Introdução
 
-Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nssa classe de modelos há três suposições: indepedência das observações, distribuição normal e homocedasticidade dos erros (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de 100 valores da resposta segundo alguns critérios considerando três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=1,5$ e covariável $x$ fixa gerada de uma distribuiçaõ $U(5, 20)$.
+Um modelo linear simples pode ser definido como $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}, \ \xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$. Nssa classe de modelos há três suposições: indepedência das observações, distribuição normal e homocedasticidade dos erros (variância constante). O objetivo dessa análise é avaliar como os estimadores de $\beta_0$ e $\beta_1$ se comportam quando cada uma dessas suposições é violada. Isso será abordado através da simulação de 100 valores da resposta segundo alguns critérios considerando três tamanhos amostrais ($n=30, 50, 100$), $\beta_0=1$, $\beta_1=1,5$ e covariável $x$ fixa gerada de uma distribuiçaõ $U(5, 20)$. A sferramentas para estudar os estimadores são os gráficos e tabelas apresentados a seguir.
 
-```{r}
+As Figuras \ref{fig:qqa},\ref{fig:qqb}, \ref{fig:qqc} e \ref{fig:qqd} apresentam o gráfico de quantil-quantil dos parâmetros $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes para cada tamanho amostral do conjuto de covariáveis $x$. As Figuras \ref{fig:dena}, \ref{fig:denc}, \ref{fig:denc} e \ref{fig:dend} trazem as densidades dos estimadores obtidos dos 100 ajustes para cada tamanho da amostra de $x$.
+
+Os intervalos foram gerados com um coeficiente de $\gamma =95\%$ de confiança. Isso representa que, de acordo com a inferência frequentista, quando gerados 100 intervalos deste tipo, em média, 95 contém o verdadeiro valor do parâmetro. Assim, as Tabelas \ref{tab:cober_a}, xx, xx e xx  mostram as probabilidades de cobertura dos intervalos de confiança para cada tamanho amostral. Já as Figuras \ref{fig:ic_a}, \ref{fig:ic_b}, \ref{fig:ic_c} e \ref{fig:ic_d} representam os intervalos de confiança para as estimativas obtidas a cada réplica e para os três tamanhos amostrais.
+
+Por fim, as tabelas xx, xx, xx e xx apresentam os níveis descritivos empíricos dos testes $H_{0} : \beta_{0}=1$ vs $H_{1} : \beta_{0} \neq 1$ e $H_{0} : \beta_{1}=0$ vs $H_{1} : \beta_{1} \neq 0$ que foram feitos ao nível de significância $\alpha = 0,05$.
+
+
+```{r constantes}
 # tamanhos amostrais
 ns <- c(30, 50, 100)
 # número de réplicas
@@ -59,10 +68,15 @@ sigma <- 2
 nu <- 6
 ```
 
-```{r}
-cobertura_empirica <- function(resultados) {
+```{r funcoes}
+cobertura_empirica_ic <- function(resultados) {
   group_by(resultados, n) %>% 
     summarise(b0.cobertura = mean(b0 >= b0.lo & b0 <= b0.hi), b1.cobertura = mean(b1 >= b1.lo & b1 <= b1.hi))
+}
+
+cobertura_empirica_teste <- function(resultados) {
+  group_by(resultados, n) %>% 
+    summarise(cobertura = mean(pvalor))
 }
 
 plot_intervalos <- function(resultados) {
@@ -73,9 +87,9 @@ plot_intervalos <- function(resultados) {
     facet_grid(par~n) + theme_bw()
 }
 
-plot_histograma <- function(resultados, binwidth = NULL, bins = NULL) {
+plot_qq <- function(resultados, binwidth = NULL, bins = NULL) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
-    ggplot(aes(est)) + geom_histogram() + 
+    ggplot(aes(sample = est)) + stat_qq() + stat_qq_line() +
     facet_grid(n~par, scales = "free") + theme_bw()
   }
 
@@ -89,15 +103,19 @@ plot_density <- function(resultados) {
 
 ## Item a)
 
-$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$ e $\sigma=2$.
+Neste item, todas as suposições do modelo de regressão normal homocedástico possui são verificadas, ou seja, $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$ onde $\xi_{i} \stackrel{i . i . d .}{\sim} N\left(0, \sigma^{2}\right)$ e $\sigma=2$. Assim, vamos iniciar as análises utilizando as ferramentas citadas anteriormente. 
 
-```{r}
+```{r result_a}
 resultados <- tibble(
   # tibble recicla, então todas as colunas são de mesmo tamanho mas assim fica mais legível :)
   n = numeric(length(ns) * r), repl = 0,  b0.est = 0, b1.est = 0, 
   b0.lo = 0, b0.hi = 0, b1.lo = 0, b1.hi = 0, pvalor = 0
   )
 i <- 0
+c <- matrix(c(1,0,0,1), byrow = FALSE, nrow = 2)
+m <- matrix(c(1,0), nrow = 2)
+
+
 for (n in ns) {
   x <- runif(n, 5, 20)
   xbar <- mean(x)
@@ -110,7 +128,8 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0), df = 98)$result$chi2[3]
+      testeF.CBM(fit.model = fit, m.C = c, m.M = m)
+      #aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0), df = 98)$result$chi2[3]
       )
   }
 }
@@ -118,42 +137,73 @@ for (n in ns) {
 ```
 
 
-```{r hist_a, fig.cap="Histograma dos betas para cada tamanho amostral. Item a)\\label{fig:hista}"}
-plot_histograma(resultados)
+```{r qq_a, fig.cap="Histograma dos betas para cada tamanho amostral. Item a)\\label{fig:qqa}", fig.width=8, fig.height=4}
+q_a <- plot_qq(resultados)
+d_a <- plot_density(resultados)
+
+gridExtra::grid.arrange(q_a, d_a, ncol=2)
 ```
 
-A Figura \ref{fig:hist_a} apresenta o histograma dos parâmetros $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes para cada tamanho amostral de do conjuto de covariáveis $x$. Por meio da Figura, nota-se a medida que o tamanho de $n$ aumenta, a variância das estimativas diminui e os valores concentram-se no verdadeiros valores do parâmetro ($\beta_0=1$ e $\beta_1=1,5$). Assim, percebemos a consistência dos estimadores de mínimos quadrados quando todas as suposições do modelo são verificadas.
+Por meio da Figura \ref{fig:qq_a}, nota-se a medida que o tamanho de $n$ aumenta, a variância das estimativas diminui pois os pontos concentram-se em torno da reta. Assim, percebemos a consistência dos estimadores de mínimos quadrados quando todas as suposições do modelo são verificadas
 
+```{r densa, fig.cap="Densidade item a).\\label{fig:densa}"}
+#d_a <- plot_density(resultados)
+```
+
+Por meio da Figura x pode-se perceber que a distribuição do estimador de $\beta_1$ assemelha-se a uma distribuição normal quando $n$ cresce. A distribuição de $\beta_0$ ...
+ 
 ```{r ic_a, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item a).\\label{fig:ic_a}"}
 plot_intervalos(resultados)
 ```
 
-O comportamento dos intervalos de confiança para $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes do modelo linear assemelha-se com a situação anterior como mostra a Figura \ref{fig:ic_a}, isto é, a medida que o tamanho da amostra cresce, a variabilidade dos intervalos diminui. Assim, os intervalos obtidos quando $n = 100$ possuem menor comprimento.
+O comportamento dos intervalos de confiança para $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes do modelo linear assemelha-se com a situação anterior como mostra a Figura \ref{fig:ic_a}, isto é, a medida que o tamanho da amostra cresce, a variabilidade dos intervalos diminuie os resultados são mais precisos. Assim, os intervalos obtidos quando $n = 100$ possuem menor comprimento.
 
-Os intervalos foram gerados com um coeficiente de $95\%$ de confiança o que representa que, de acordo com a visão frequentista da inferência, quando gerados 100 intervalos deste tipo, em média 95 contém o verdadeiro valor do parâmetro. Assim, a Tabela \ref{tab:cober_a} mostra as probabilidades de cobertura dos intervalos de confiança para cada tamanho amostral. Dessa forma, nota-se que esse valor varia devido à flutuação amostral mas essa variação possui uma magnetude baixa.
+```{r}
+#cobertura_empirica_ic(resultados) %>%
+# xtable::xtable(label = "cober_a", caption = "Cobertura empírica dos intervalos de confiança")
+```
 
 \begin{table}[ht]
 \centering
-\caption{Cobertura empírica dos intervalos de confianca} 
-\label{cober_a}
-\begin{tabular}{rrr}
+\begin{tabular}{rrrr}
   \hline
-n & $\beta_0$ & $\beta_1$ \\ 
+ & n & b0.cobertura & b1.cobertura \\ 
   \hline
-30,00 & 0,97 & 0,96 \\ 
-50,00 & 0,95 & 0,95 \\ 
-100,00 & 0,94 & 0,99 \\ 
+1 & 30,00 & 0,95 & 0,98 \\ 
+  2 & 50,00 & 0,94 & 0,94 \\ 
+  3 & 100,00 & 0,91 & 0,95 \\ 
    \hline
 \end{tabular}
-\end{table} 
+\caption{Cobertura empírica dos intervalos de confiança} 
+\label{cober_a}
+\end{table}
+
+Nota-se através da Tabela \ref{tab:cober_a} que a probabilidade de cobertura do intervalo de confiança para as estimativas é bem próxima do valor verdadeiro ($95\%$) e, apesar de existir uma flutuação amostral, essa variação possui baixa magnetude.
 
 ```{r}
-#cobertura_empirica(resultados) %>%
-#  xtable::xtable(label = "cober_a", caption = "Cobertura empírica dos intervalos de confiança")
+#cobertura_empirica_teste(resultados) %>%
+#  xtable::xtable(label = "cober_ta", caption = "Cobertura empírica dos testes")
 ```
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & n & cobertura \\ 
+  \hline
+1 & 30,00 & 0,00 \\ 
+  2 & 50,00 & 0,00 \\ 
+  3 & 100,00 & 0,00 \\ 
+   \hline
+\end{tabular}
+\caption{Cobertura empírica dos testes} 
+\label{cober_ta}
+\end{table}
+
+É possível notar por meio da Tabela \ref{tab:cober_ta} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
 
 ## Item b)
 
+Nesse item, iremos estudar o comportamento dos estimadores quando apenas a suposição de homocedasticidade não é verificada, isto é, 
 $Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi_{i} \stackrel{ind.}{\sim} N\left(0, \sigma^{2} x_i \right)$ e $\sigma=2$.
 
 ```{r}
@@ -175,24 +225,77 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
-      )
+      testeF.CBM(fit.model = fit, m.C = c, m.M = m))
   }
 }
 
 #cobertura_empirica(resultados)
 ```
 
-```{r}
-#plot_intervalos(resultados)
+Ao analisar os gráficos apresentados na Figura \ref{fig:qqb} podemos observar que  distribução dos estimadores quando $n=30$ encontra-se um pouco afastada da reta nas caudas. Mas confrome $n$ cresce, a distribuição aproxima-se melhor da reta.
+
+```{r qq_b, fig.cap="QQPlot dos betas para cada tamanho amostral. Item b)\\label{fig:qqb}", fig.width=8, fig.height=4}
+q_b <- plot_qq(resultados)
+d_b <- plot_density(resultados)
+
+gridExtra::grid.arrange(q_b, d_b, ncol=2)
+```
+Assim como apresentado no item anterior (item a), a distribuição dos estimadores assemelha-se levemente de uma distribuição normal quando n cresce.
+
+```{r densb, fig.cap="Densidade item b).\\label{fig:densb}"}
+#plot_density(resultados)
+```
+Observe-se, quando os gráficos da Figura \ref{fig:ic_b} são comparados com a Figura \ref{fig:ic_a} são semelhantes pois o tamanho do intervalo diminui a medida que $n$ cresce. Porém, ao comparar os ICs obtidos com $n = 50$ e $n = 30$, percebe-se que não houve uma melhora significativa como obetmos no item anterior.
+
+```{r ic_b, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item b).\\label{fig:ic_b}"}
+plot_intervalos(resultados)
 ```
 
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & n & b0.cobertura & b1.cobertura \\ 
+  \hline
+1 & 30,00 & 0,96 & 0,98 \\ 
+  2 & 50,00 & 0,95 & 0,94 \\ 
+  3 & 100,00 & 0,92 & 0,91 \\ 
+   \hline
+\end{tabular}
+\caption{Cobertura empírica dos intervalos de confiança item b)} 
+\label{cober_b}
+\end{table}
 ```{r}
-plot_histograma(resultados)
+#cobertura_empirica_ic(resultados) %>%
+# xtable(label = "cober_b", caption = "Cobertura empírica dos intervalos de confiança item b)")
 ```
+
+Nota-se através da Tabela \ref{tab:cober_b} que a probabilidade de cobertura do intervalo de confiança para as estimativas é bem próxima do valor verdadeiro ($95\%$) mas já é mais distanate do que foi observado no item a0.
+
+
+```{r}
+#cobertura_empirica_teste(resultados) %>%
+# xtable::xtable(label = "cober_tb", caption = "Cobertura empírica dos testes,item b")
+```
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & n & cobertura \\ 
+  \hline
+1 & 30,00 & 0,34 \\ 
+  2 & 50,00 & 0,22 \\ 
+  3 & 100,00 & 0,08 \\ 
+   \hline
+\end{tabular}
+\caption{Cobertura empírica dos testes,item b} 
+\label{cober_tb}
+\end{table}
+
+É possível notar por meio da Tabela \ref{tab:cober_tb} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
 
 ## Item c)
-
+esse item, iremos estudar o comportamento dos estimadores quando apenas a suposição de normalidade não é verificada, isto é, 
 $\xi_{i} \stackrel{i . i . d .}{\sim} t_{(\nu)}\left(\sigma^{2}\right)$, onde  $\nu=6$ e  $\mathcal{V}(\xi)=\sigma^{2} \frac{\nu}{\nu-2}$.
 
 ```{r}
@@ -216,21 +319,73 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
-      )
+      testeF.CBM(fit.model = fit, m.C = c, m.M = m))
   }
 }
 
 #cobertura_empirica(resultados)
 ```
 
-```{r}
-#plot_intervalos(resultados)
+Ao analisar os gráficos apresentados na Figura \ref{fig:qqc} podemos observar que distribução de $\beta1$ não variam muito conforme $n$ cresce. Já o estimador $\beta_0$ apresenta um comportamento atípico, pois, para $n=100$ é a situação a qual os pontos mais distanciam-se da reta nas caudas.
+
+```{r qq_c, fig.cap="QQPlot dos betas para cada tamanho amostral. Item c)\\label{fig:qqb}", fig.width=8, fig.height=4}
+q_c <- plot_qq(resultados)
+d_c <- plot_density(resultados)
+
+gridExtra::grid.arrange(q_c, d_c, ncol=2)
+```
+Os resultados apresentados pela Figura x (densidade) são semelhantes os mesmos gráficos apresentados nos itens ateriores assim como ocorre nos gráficos apresentados na Figura \ref{fig:ic_c}, não há mudanças evidentes nos dois intens. 
+
+```{r densc, fig.cap="Densidade item c).\\label{fig:densc}"}
+#plot_density(resultados)
 ```
 
-```{r}
-plot_histograma(resultados)
+```{r ic_c, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item c).\\label{fig:ic_c}"}
+plot_intervalos(resultados)
 ```
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrr}
+  \hline
+ & n & b0.cobertura & b1.cobertura \\ 
+  \hline
+1 & 30,00 & 0,97 & 0,96 \\ 
+  2 & 50,00 & 0,95 & 0,98 \\ 
+  3 & 100,00 & 0,89 & 0,97 \\ 
+   \hline
+\end{tabular}
+\caption{Cobertura empírica dos intervalos de confiança item b)} 
+\label{cober_b}
+\end{table}
+
+```{r}
+#cobertura_empirica_ic(resultados) %>%
+# xtable::xtable(label = "cober_b", caption = "Cobertura empírica dos intervalos de confiança item b)")
+```
+
+Nota-se através da Tabela \ref{tab:cober_c} que a probabilidade de cobertura do intervalo de confiança para as estimativas distancia-se do valor verdadeiro conforme $n$ aumenta, diferente do que apresentados nos itens a e b.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & n & cobertura \\ 
+  \hline
+1 & 30,00 & 0,00 \\ 
+  2 & 50,00 & 0,00 \\ 
+  3 & 100,00 & 0,00 \\ 
+   \hline
+\end{tabular}
+\caption{Cobertura empírica dos testes,item b} 
+\label{cober_tb}
+\end{table}
+
+```{r}
+#cobertura_empirica_teste(resultados) %>%
+#  xtable::xtable(label = "cober_tb", caption = "Cobertura empírica dos testes,item b")
+```
+
+É possível notar por meio da Tabela \ref{tab:cober_tc} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
 
 ## Item d)
 
@@ -246,17 +401,17 @@ i <- 0
 for (n in ns) {
   x <- runif(n, 5, 20)
   xbar <- mean(x)
-  m <- matrix(data=0.9 * sigma ^ 2, nrow=n, ncol=n)
+  M <- matrix(data=0.9 * sigma ^ 2, nrow=n, ncol=n)
   diag(m) <- sigma ^ 2
   for (repl in 1:r) {
     i <- i + 1
-    y <- b0 + b1*(x-xbar) + c(mvtnorm::rmvnorm(1, rep(mu, nrow(m)), m))
+    y <- b0 + b1*(x-xbar) + c(mvtnorm::rmvnorm(1, rep(mu, nrow(M)), M))
     fit <- lm(y ~ I(x-xbar))
     # fit$coefficients e confint retornam vetores, mas c() sempre tem 1 dimensão :)
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0))$result$chi2[3]
+      testeF.CBM(fit.model = fit, m.C = c, m.M = m)
       )
   }
 }
@@ -264,10 +419,27 @@ for (n in ns) {
 #cobertura_empirica(resultados)
 ```
 
-```{r}
-#plot_intervalos(resultados)
+```{r qq_d, fig.cap="QQPlot dos betas para cada tamanho amostral. Item b)\\label{fig:qqb}", fig.width=8, fig.height=4}
+q_d <- plot_qq(resultados)
+d_d <- plot_density(resultados)
+
+gridExtra::grid.arrange(q_d, d_d, ncol=2)
+```
+```{r densd, fig.cap="Densidade item d).\\label{fig:densd}"}
+#plot_density(resultados)
+```
+
+```{r ic_d, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item d).\\label{fig:ic_d}"}
+plot_intervalos(resultados)
 ```
 
 ```{r}
-plot_histograma(resultados)
+#cobertura_empirica_ic(resultados) %>%
+# xtable(label = "cober_d", caption = "Cobertura empírica dos intervalos de confiança item d)")
+```
+
+
+```{r}
+#cobertura_empirica_teste(resultados) %>%
+#  xtable::xtable(label = "cober_td", caption = "Cobertura empírica dos testes,item d")
 ```
