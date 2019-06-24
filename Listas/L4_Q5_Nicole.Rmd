@@ -15,6 +15,7 @@ header-includes:
   - \usepackage[fixlanguage]{babelbib}
   - \usepackage{times}
   - \usepackage{float}
+  - \usepackage{booktabs}
 ---
 
 ```{r setup, include=FALSE}
@@ -33,10 +34,11 @@ options(
 ```
 
 ```{r lib}
+library(magrittr)
 library(aod)
 library(dplyr)
 library(ggplot2)
-library(xtable)
+library(knitr)
 source("test_functions.R")
 ```
 
@@ -51,7 +53,7 @@ As Figuras \ref{fig:qqa},\ref{fig:qqb}, \ref{fig:qqc} e \ref{fig:qqd} apresentam
 
 Os intervalos de confiança foram gerados com um coeficiente de $\gamma =95\%$ de confiança. Isso representa que, de acordo com a inferência frequentista, quando gerados 100 intervalos deste tipo, em média, 95 contém o verdadeiro valor do parâmetro. Assim, as Tabelas \ref{tab:cober_a}, \ref{tab:cober_b}, \ref{tab:cober_c} e \ref{tab:cober_d}  mostram as probabilidades de cobertura dos intervalos de confiança para cada tamanho amostral. Já as Figuras \ref{fig:ic_a}, \ref{fig:ic_b}, \ref{fig:ic_c} e \ref{fig:ic_d} representam os intervalos de confiança para as estimativas obtidas a cada réplica e para os três tamanhos amostrais.
 
-Por fim, as tabelas xx, xx, xx e xx apresentam os níveis descritivos empíricos dos testes $H_{0} : \beta_{0}=1$ vs $H_{1} : \beta_{0} \neq 1$ e $H_{0} : \beta_{1}=0$ vs $H_{1} : \beta_{1} \neq 0$ a um nível de significância $\alpha = 0,05$. Para testar as hipóteses acima utilizamos o teste do tipo Wald ($C \beta=M$). (detalhes em https://www.ime.unicamp.br/~cnaber/aula_Intro_MRLM_REG_1S_2019_parte_3_Teste_CB.pdf).
+Por fim, as Tabelas \ref{tab:cober_ta}, \ref{tab:cober_tb}, \ref{tab:cober_tc} e \ref{tab:cober_td} apresentam os níveis descritivos empíricos dos testes $H_{0} : \beta_{0}=1$ vs $H_{1} : \beta_{0} \neq 1$ e $H_{0} : \beta_{1}=0$ vs $H_{1} : \beta_{1} \neq 0$ a um nível de significância $\alpha = 0,05$. Para testar as hipóteses acima utilizamos o teste do tipo Wald ($C \beta=M$). (detalhes em https://www.ime.unicamp.br/~cnaber/aula_Intro_MRLM_REG_1S_2019_parte_3_Teste_CB.pdf).
 
 
 ```{r constantes}
@@ -79,20 +81,20 @@ cobertura_empirica_teste <- function(resultados) {
     summarise(nivel = sum(pvalor < 0.05)/n()) #proporcao de vezes que rejeito h0
 }
 
-plot_intervalos <- function(resultados) {
-  tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
-    ggplot(aes(repl)) + 
-    geom_hline(yintercept = b0, col = "cadetblue", linetype = "dashed") +
-    geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = 0.5) + 
-    facet_grid(par~n) +
-    labs(x = "Replicações") +
-    theme_bw()
+plot_intervalos <- function(resultados, alpha = 0.5) {
+  # tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
+  #   ggplot(aes(repl)) + 
+  #   geom_hline(yintercept = b0, col = "cadetblue", linetype = "dashed") +
+  #   geom_ribbon(aes(ymin=b0.lo, ymax=b0.hi), fill = "coral", alpha = alpha) + 
+  #   facet_grid(par~n) +
+  #   labs(x = "Replicações") +
+  #   theme_bw()
 }
 
 plot_qq <- function(resultados, binwidth = NULL, bins = NULL) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
-    ggplot(aes(sample = est)) + stat_qq() + stat_qq_line() +
-    facet_grid(n~par, scales = "free") + 
+    ggplot(aes(sample = est)) + stat_qq(color = "gray", alpha = 0.75) + stat_qq_line() +
+    facet_wrap(par~n, scales = "free") + 
     labs(x = "Teórico", y = "Amostra") +
     theme_bw()
   }
@@ -100,7 +102,7 @@ plot_qq <- function(resultados, binwidth = NULL, bins = NULL) {
 plot_density <- function(resultados) {
   tidyr::gather(resultados, "par", "est", b0.est, b1.est) %>% 
     ggplot(aes(est)) + geom_density() + 
-    facet_grid(n~par, scales = "free") + 
+    facet_wrap(par~n, scales = "free") + 
     labs(x = "Estimadores", y = "Densidade") +
     theme_bw()
   }
@@ -118,8 +120,9 @@ resultados <- tibble(
   b0.lo = 0, b0.hi = 0, b1.lo = 0, b1.hi = 0, pvalor = 0
   )
 i <- 0
-c <- matrix(c(1,0,0,1), byrow = FALSE, nrow = 2)
-m <- matrix(c(1,0), nrow = 2)
+C.teste <- matrix(c(1,0,0,1), byrow = FALSE, nrow = 2)
+M.teste <- matrix(c(1,0), nrow = 2)
+# M.teste <- matrix(c(1,1.5), nrow = 2)
 
 
 for (n in ns) {
@@ -134,7 +137,7 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      testeF.CBM(fit.model = fit, m.C = c, m.M = m)
+      testeF.CBM(fit.model = fit, m.C = C.teste, m.M = M.teste)
       #aod::wald.test(b=coef(fit), Sigma=vcov(fit), Terms=c(1,2), H0=c(1,0), df = 98)$result$chi2[3]
       )
   }
@@ -159,28 +162,12 @@ plot_intervalos(resultados)
 O comportamento dos intervalos de confiança para $\beta_0$ e $\beta_1$ obtidos dos 100 ajustes do modelo linear assemelha-se com a situação anterior como mostra a Figura \ref{fig:ic_a}, isto é, a medida que o tamanho da amostra cresce, a variabilidade dos intervalos diminui e os resultados são mais precisos. Assim, os intervalos obtidos quando $n = 100$ possuem menor comprimento. A Tabela \ref{tab:cober_a} indica que a probabilidade de cobertura dos intervalos de confiança para as estimativas é bem próxima do valor verdadeiro ($95\%$) e, apesar de existir uma flutuação amostral, essa variação possui baixa magnetude.
 
 ```{r}
-#cobertura_empirica_ic(resultados) %>%
-# xtable::xtable(label = "cober_a", caption = "Cobertura empírica dos intervalos de confiança")
-```
+cobertura_empirica_ic(resultados) %>%
+kable(caption = "\\label{cober_a}Cobertura empírica dos intervalos de confiança",
+      booktabs = T, col.names = c("n","Beta0", "Beta1"))
 
-\begin{table}[ht]
-\centering
-\caption{Cobertura empírica dos intervalos de confiança para $\beta_0$ e $\beta_1$ do Item a} 
-\label{cober_a}
-\begin{tabular}{rrr}
-  \hline
-n & $\beta_0$ & $\beta_1$ \\ 
-  \hline
-30 & 0,95 & 0,98 \\ 
-50 & 0,94 & 0,94 \\ 
-100 & 0,91 & 0,95 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
-```{r}
-#cobertura_empirica_teste(resultados) %>%
-#  xtable::xtable(label = "cober_ta", caption = "Cobertura empírica dos testes")
+cobertura_empirica_teste(resultados) %>%
+ kable(caption = "\\label{cober_ta}Cobertura empírica dos testes", booktabs = T)
 ```
 
 É possível notar por meio da Tabela \ref{tab:cober_ta} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
@@ -209,7 +196,7 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      testeF.CBM(fit.model = fit, m.C = c, m.M = m))
+      testeF.CBM(fit.model = fit, m.C = C.teste, m.M = M.teste))
   }
 }
 
@@ -231,32 +218,16 @@ Observa-se que, quando os gráficos da Figura \ref{fig:ic_b} são comparados com
 plot_intervalos(resultados)
 ```
 
-\begin{table}[ht]
-\centering
-\caption{Cobertura empírica dos intervalos de confiança para o Item b} 
-\label{cober_b}
-\begin{tabular}{rrr}
-  \hline
-n & $\beta_0$ & $\beta_1$ \\ 
-  \hline
-30,00 & 0,97 & 0,96 \\ 
-50,00 & 0,99 & 0,97 \\ 
-100,00 & 0,95 & 0,94 \\ 
-   \hline
-\end{tabular}
-\end{table}
-
 ```{r}
-#cobertura_empirica_ic(resultados) %>%
-# xtable(label = "cober_b", caption = "Cobertura empírica dos intervalos de confiança para o Item b")
+cobertura_empirica_ic(resultados) %>%
+kable(caption = "\\label{cober_b}Cobertura empírica dos intervalos de confiança para o Item b",
+      booktabs = T, col.names = c("n","Beta0", "Beta1"))
+
+cobertura_empirica_teste(resultados) %>%
+kable(caption = "\\label{cober_tb}Cobertura empírica dos testes,item b", booktabs = T, digits = 3)
 ```
 
-```{r}
-#cobertura_empirica_teste(resultados) %>%
-#xtable::xtable(label = "cober_tb", caption = "Cobertura empírica dos testes,item b", digits = 3)
-```
-
-É possível notar por meio da Tabela x que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
+É possível notar por meio da Tabela \ref{cober_b} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
 
 ## Item c)
 
@@ -284,7 +255,7 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      testeF.CBM(fit.model = fit, m.C = c, m.M = m))
+      testeF.CBM(fit.model = fit, m.C = C.teste, m.M = M.teste))
   }
 }
 
@@ -305,51 +276,22 @@ Os resultados apresentados na Figura \ref{fig:ic_c} revelam que não há mudanç
 ```{r ic_c, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item c).\\label{fig:ic_c}"}
 plot_intervalos(resultados)
 ```
-\begin{table}[ht]
-\centering
-\caption{Cobertura empírica dos intervalos de confiança item c)} 
-\label{cober_c}
-\begin{tabular}{rrrr}
-  \hline
- & n & b0.cobertura & b1.cobertura \\ 
-  \hline
-1 & 30,00 & 0,93 & 0,95 \\ 
-  2 & 50,00 & 0,96 & 0,95 \\ 
-  3 & 100,00 & 0,96 & 0,96 \\ 
-   \hline
-\end{tabular}
-\end{table}
 
 ```{r}
-#cobertura_empirica_ic(resultados) %>%
-# xtable::xtable(label = "cober_c", caption = "Cobertura empírica dos intervalos de confiança item c)")
-```
+cobertura_empirica_ic(resultados) %>%
+kable(caption = "\\label{cober_c}Cobertura empírica dos intervalos de confiança item c)",
+      booktabs = T, col.names = c("n", "Beta0", "Beta1"))
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrr}
-  \hline
- & n & cobertura \\ 
-  \hline
-1 & 30,00 & 0,00 \\ 
-  2 & 50,00 & 0,00 \\ 
-  3 & 100,00 & 0,00 \\ 
-   \hline
-\end{tabular}
-\caption{Cobertura empírica dos testes,item c} 
-\label{cober_tc}
-\end{table}
-
-```{r}
-#cobertura_empirica_teste(resultados) %>%
-#  xtable::xtable(label = "cober_tc", caption = "Cobertura empírica dos testes,item c")
+cobertura_empirica_teste(resultados) %>%
+ kable(caption = "\\label{cober_tc}Cobertura empírica dos testes,item c",
+       booktabs = T)
 ```
 
 É possível notar por meio da Tabela \ref{tab:cober_tc} que o p-valor obtido nos teste foi sempre menor que o nível de significância $\alpha$. Logo, em todas as simulações rejeitamos a hipótese nula em favor da alternativa.
 
 ## Item d)
 
-$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi \stackrel{ind.}{\sim} N_n\left(\mathbf{0}, \boldsymbol{\Sigma}\right)$ e a diagonal de $\boldsymbol{\Sigma}$ vale 4 (variância de cada erro) e todos os outros elementos têm valor 0,90 ($\operatorname{Cor}\left(\xi_{i}, \xi_{j}\right) = 0,90, \ j \neq i$).
+$Y_{i}=\beta_{0}+\beta_{1}\left(x_{i}-\overline{x}\right)+\xi_{i}$, onde $\xi \stackrel{ind.}{\sim} N_n\left(\mathbf{0}, \boldsymbol{\Sigma}\right)$ e a diagonal de $\boldsymbol{\Sigma}$ vale 4 (variância de cada erro) e todos os outros elementos têm valor 3,6 ($\operatorname{Cor}\left(\xi_{i}, \xi_{j}\right) = 0,90, \ j \neq i$).
 
 ```{r}
 resultados <- tibble(
@@ -361,8 +303,8 @@ i <- 0
 for (n in ns) {
   x <- runif(n, 5, 20)
   xbar <- mean(x)
-  M <- matrix(data=3.6 * sigma ^ 2, nrow=n, ncol=n)
-  diag(m) <- sigma ^ 2
+  M <- matrix(data=0.9 * sigma ^ 2, nrow=n, ncol=n)
+  diag(M) <- sigma ^ 2
   for (repl in 1:r) {
     i <- i + 1
     y <- b0 + b1*(x-xbar) + c(mvtnorm::rmvnorm(1, rep(mu, nrow(M)), M))
@@ -371,7 +313,7 @@ for (n in ns) {
     # IMPORTANTE: verificar wald.test
     resultados[i, ] <- c(
       n, repl, fit$coefficients, confint(fit, 1), confint(fit, 2), 
-      testeF.CBM(fit.model = fit, m.C = c, m.M = m)
+      testeF.CBM(fit.model = fit, m.C = C.teste, m.M = M.teste)
       )
   }
 }
@@ -387,15 +329,15 @@ gridExtra::grid.arrange(q_d, d_d, ncol=2)
 ```
 
 ```{r ic_d, fig.cap="Intervalos de confianca para as estimativas em cada tamanho amostral item d).\\label{fig:ic_d}"}
-plot_intervalos(resultados)
+plot_intervalos(resultados, alpha = 1)
 ```
 
 ```{r}
 cobertura_empirica_ic(resultados) %>%
- xtable(label = "cober_d", caption = "Cobertura empírica dos intervalos de confiança item d)")
-```
+ kable(caption = "\\label{cober_d}Cobertura empírica dos intervalos de confiança item d)",
+       booktabs = T, col.names = c("n", "Beta0", "Beta1"))
 
-```{r}
-#cobertura_empirica_teste(resultados) %>%
-#  xtable::xtable(label = "cober_td", caption = "Cobertura empírica dos testes,item d")
+cobertura_empirica_teste(resultados) %>%
+kable(caption = "\\label{cober_td}Cobertura empírica dos testes,item d",
+      booktabs = T)
 ```
